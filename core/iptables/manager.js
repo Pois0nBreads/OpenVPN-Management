@@ -1,7 +1,6 @@
 /**
 *	package core/iptables/manager.js
 **/
-const { execSync } = require('child_process');
 
 const IPLearner = require('./iplearner.js');
 const Controller = require('./controller.js')
