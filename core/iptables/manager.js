@@ -5,6 +5,7 @@
 const IPLearner = require('./iplearner.js');
 const Controller = require('./controller.js')
 const RuleBean = require('./ruleBean.js');
+const e = require('express');
 
 class Manager {
 	
@@ -140,11 +141,22 @@ class Manager {
 		//添加新记录
 		if (op == 'delete')
 			return;
+
 		let roles = this.queryRoleFromCN(cn);
-		for (let role of roles) {
-			let chainName = this.chainFixed + role;
-			let rule = new RuleBean({source: addr, target: chainName});
-			contr.addRuleByChainName(contr.forwardTable, rule);
+		if (roles instanceof Promise) {
+			roles.then(data => {
+				for (let role of data) {
+					let chainName = this.chainFixed + role;
+					let rule = new RuleBean({source: addr, target: chainName});
+					contr.addRuleByChainName(contr.forwardTable, rule);
+				}
+			}).catch(e => console.error(e));
+		}else {
+			for (let role of roles) {
+				let chainName = this.chainFixed + role;
+				let rule = new RuleBean({source: addr, target: chainName});
+				contr.addRuleByChainName(contr.forwardTable, rule);
+			}
 		}
 	}
 	

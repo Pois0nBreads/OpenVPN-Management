@@ -30,6 +30,8 @@ def on_end():
 
 def on_data(data):
     msg = data.strip()
+    print 'msg: '
+    print msg
     if msg == '0':
         print '验证成功！'
         sys.exit(0)

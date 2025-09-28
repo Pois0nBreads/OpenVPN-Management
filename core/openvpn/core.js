@@ -37,12 +37,23 @@ class OpenVPNCore {
 				try {
 					let username = msg.split('\n')[0];
 					let password = msg.split('\n')[1];
-					socket.write(this.author(username, password));
+
+					let result = this.author(username, password);
+					if (result instanceof Promise)
+						result.then(data => {
+							socket.write(data);
+							socket.end();
+						}).catch(e => console.error(e));
+					else {
+						socket.write(result);
+						socket.end();
+					}
+
 				} catch(e) {
 					console.log(e);
 					console.log(`未知的客户端`);
+					socket.end();
 				}
-				socket.end();
 			});
 
 			socket.on('end', () => {
@@ -77,7 +88,7 @@ class OpenVPNCore {
 
 		this.process.stdout.on('data', (data) => {
 			data = data.toString();
-			//console.log(data);
+			console.log(data);
 			if (data.match('Initialization Sequence Completed')) {
 				console.log(`守护进程已启动 PID: ${_this.process.pid}`);
 				manager.disconnect();
