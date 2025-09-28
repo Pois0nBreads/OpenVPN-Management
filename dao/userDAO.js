@@ -34,7 +34,10 @@ class UserDAO {
         });
     }
 
-    //获取全部用户
+    /**
+     * 获取全部用户
+     * @param {Function} callback 
+     */
     getAllUsers(callback) {
         let pool = this.pool;
         let sql = `SELECT * FROM ${USER_TABLE_NAME}`;
@@ -47,7 +50,11 @@ class UserDAO {
         });
     }
 
-    //根据用户名获取信息
+    /**
+     * 根据用户名获取信息
+     * @param {string} name 
+     * @param {Function} callback 
+     */
     getUserByName(name, callback) {
         let pool = this.pool;
         let sql = `SELECT * FROM ${USER_TABLE_NAME} WHERE username = ?`;

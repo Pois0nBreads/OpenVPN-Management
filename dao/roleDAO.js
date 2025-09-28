@@ -8,7 +8,6 @@
  * 
  */
 const mysql = require('mysql');
-const crypto = require('crypto');
 
 const ROLE_TABLE_NAME = "role";
 
@@ -66,7 +65,7 @@ class RoleDAO {
     * @param {Array} networks 网络组数组
     * @param {function} callback 
     */
-    addUser(roleName, networks, callback) {
+    addRole(roleName, networks, callback) {
         let pool = this.pool;
         let networkstr = '';
         for (let network of networks)
@@ -130,7 +129,7 @@ class RoleDAO {
     * @param {Array} networks 网络组数组
     * @param {function} callback 
     */
-    changeRolesByName(uid, networks, callback) {
+    changeRoleByUID(uid, networks, callback) {
         let pool = this.pool;
         this.getRoleByUID(uid, (er, res) => {
             if (er) {

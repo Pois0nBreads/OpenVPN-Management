@@ -8,8 +8,21 @@ const RoleDAO = require('./dao/roleDAO.js');
 
 
 let userDao = new UserDAO(config.dataBase);
-let roleDAO = new UserDAO(config.dataBase);
+let roleDAO = new RoleDAO(config.dataBase);
 
+roleDAO.addRole('test', [1,3,0], (err, result) => {
+    if (err)
+        console.error(err);
+    else
+        console.log(result);  
+});
+
+roleDAO.getAllRoles((err, result) => {
+  	if (err)
+		console.error(err);
+	else
+		console.log(result);  
+})
 
 // userDao.addUser("admini2", "23333", (err, result) => {
 // 	if (err)
