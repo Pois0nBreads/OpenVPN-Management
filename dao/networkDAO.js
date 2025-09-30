@@ -9,6 +9,7 @@
  */
 const mysql = require('mysql');
 const util = require('util');
+const net = require('net');
 
 const NETWORK_TABLE_NAME = "network";
 
@@ -241,6 +242,50 @@ class NetworkDAO {
         const [network, prefix] = cidr.split('/');
         // 这里可以实现完整的CIDR验证逻辑
         return ip.startsWith(network.split('.').slice(0, parseInt(prefix) / 8).join('.') + '.');
+    }
+
+    cidrToRange(cidr) {
+        try {
+            const [baseIp, maskBits] = cidr.split('/');
+            if (!baseIp || !maskBits) throw new Error('Invalid CIDR format');
+
+            const mask = ~(0xFFFFFFFF >>> maskBits);
+            const start = baseIp;
+            const end = (start | ~mask) >>> 0;
+
+            return {
+                start: net.fromLong(start),
+                end: net.fromLong(end),
+                toString: () => `${net.fromLong(start)} ${net.fromLong(end)}`
+            };
+        } catch (e) {
+            throw new Error(`Conversion failed: ${e.message}`);
+        }
+    }
+    cidrToRange(cidr) {
+        const [ip, prefix] = cidr.split('/');
+        if (!ip || !prefix) throw new Error('Invalid CIDR format');
+        
+        const prefixLength = parseInt(prefix, 10);
+        if (prefixLength < 0 || prefixLength > 32) throw new Error('Invalid prefix length');
+    
+        // 计算子网掩码
+        let mask = 0xFFFFFFFF << (32 - prefixLength);
+        mask = mask >>> 0; // 转换为无符号32位整数
+        
+        // 将掩码转为IP格式
+        const maskOctets = [
+            (mask >>> 24) & 0xFF,
+            (mask >>> 16) & 0xFF,
+            (mask >>> 8) & 0xFF,
+            mask & 0xFF
+        ].join('.');
+
+        return {
+            ip: ip,
+            maskOctets: maskOctets,
+            toString: () => `${ip} ${maskOctets}`
+        };
     }
 }
 

@@ -10,7 +10,8 @@ const fs = require('fs');
 const Manager = require('./manager.js');
 
 //定义常量
-const SOCKET_PATH = path.join('/tmp', 'openvpn.passwd.sock');
+const PASSWD_SOCKET_PATH = path.join('/tmp', 'openvpn.passwd.sock');
+const ROUTE_SOCKET_PATH = path.join('/tmp', 'openvpn.route.sock');
 
 class OpenVPNCore {
 	
@@ -19,16 +20,18 @@ class OpenVPNCore {
 		this.run_path = global.run_path;
 		this.config = config;
 		this.author = (user, pass) => '1';
+		this.clientConfigGetter = (user) => `push "route ${this.config.server_net} ${this.config.server_mask}"\n`;
 		this.process = null;
 		this.isRun = false;
 		this.manager = new Manager();
-		this.initIPC();
+		this.initAuterIPC();
+		this.initDynamicRouteIPC();
 	}
 	
 	//初始化验证通信
-	initIPC() {
-		if (fs.existsSync(SOCKET_PATH))
-			fs.unlinkSync(SOCKET_PATH);
+	initAuterIPC() {
+		if (fs.existsSync(PASSWD_SOCKET_PATH))
+			fs.unlinkSync(PASSWD_SOCKET_PATH);
 		net.createServer((socket) => {
 			console.log(`OpenVPN Core Auther 客户端发起验证请求`);
 			
@@ -51,7 +54,7 @@ class OpenVPNCore {
 
 				} catch(e) {
 					console.log(e);
-					console.log(`未知的客户端`);
+					console.log(`未知的Auther客户端`);
 					socket.end();
 				}
 			});
@@ -63,8 +66,49 @@ class OpenVPNCore {
 			socket.on('error', (err) => {
 				console.error(`OpenVPN Core Auther 客户端出现错误:`, err);
 			});
-		}).listen(SOCKET_PATH, () => {
-			console.log(`OpenVPN Core Auther 服务监听在 ${SOCKET_PATH}`);
+		}).listen(PASSWD_SOCKET_PATH, () => {
+			console.log(`OpenVPN Core Auther 服务监听在 ${PASSWD_SOCKET_PATH}`);
+		});
+	}
+	
+	//初始化动态路由通信
+	// @TODO
+	initDynamicRouteIPC() {
+		if (fs.existsSync(ROUTE_SOCKET_PATH))
+			fs.unlinkSync(ROUTE_SOCKET_PATH);
+		net.createServer((socket) => {
+			console.log(`OpenVPN Dynamic Route 客户端发起请求`);
+			
+			socket.on('data', (data) => {
+				const user = data.toString();
+				try {
+					let routes = this.clientConfigGetter(user);
+					if (routes instanceof Promise)
+					routes.then(data => {
+							socket.write(data);
+							socket.end();
+						}).catch(e => console.error(e));
+					else {
+						socket.write(routes);
+						socket.end();
+					}
+
+				} catch(e) {
+					console.log(e);
+					console.log(`未知的Dynamic Route客户端客户端`);
+					socket.end();
+				}
+			});
+
+			socket.on('end', () => {
+				//console.log('OpenVPN Dynamic Route 客户端断开连接');
+			});
+
+			socket.on('error', (err) => {
+				console.error(`OpenVPN Dynamic Route 客户端出现错误:`, err);
+			});
+		}).listen(ROUTE_SOCKET_PATH, () => {
+			console.log(`OpenVPN Dynamic Route 服务监听在 ${ROUTE_SOCKET_PATH}`);
 		});
 	}
 	

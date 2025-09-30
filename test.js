@@ -66,6 +66,7 @@ mIptablesManager.queryRoleFromCN = async (cn) => {
 //配置OpenVPN
 let mOpenVPNConfig = new OpenVPNConfig();
 let mOpenVPNCore = new OpenVPNCore(mOpenVPNConfig);
+//配置验证
 mOpenVPNCore.author = async (user, pass) => {
 	console.log(`user: ${user}, pass: ${pass}`);
 	let result = await userDao.authLogin(user, pass);
@@ -78,6 +79,31 @@ mOpenVPNCore.author = async (user, pass) => {
 			return '1';
 		default:
 			return '-1';
+	}
+};
+//配置路由下发
+mOpenVPNCore.clientConfigGetter = async (user) => {
+	console.log(`clientConfigGetterUser: ${user}`);
+	try {
+		let routes = "";
+		let userInfo = await userDao.getUserByName(user);
+		console.debug(userInfo);
+		for (let roleID of userInfo.roles) {
+			let role = await roleDAO.getRoleByUID(roleID);
+			console.debug(role);
+			for (let networkID of role.networks) {
+				let networkList = await networkDAO.getNetworkByUID(networkID);
+				console.debug(networkList);
+				for (let network of networkList.networks) {
+					routes += `push "route ${networkDAO.cidrToRange(network).toString()}"\n`;
+				}
+			}
+		}
+		console.log(`clientConfigGetter List: \n${routes}`);
+		return routes;
+	} catch (error) {
+		console.log(error);
+		return "";
 	}
 };
 mOpenVPNCore.startVPN();
