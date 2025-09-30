@@ -72,7 +72,6 @@ class OpenVPNCore {
 	}
 	
 	//初始化动态路由通信
-	// @TODO
 	initDynamicRouteIPC() {
 		if (fs.existsSync(ROUTE_SOCKET_PATH))
 			fs.unlinkSync(ROUTE_SOCKET_PATH);
@@ -112,10 +111,18 @@ class OpenVPNCore {
 		});
 	}
 	
+	/**
+	 * 查询OpenVPN线程运行状态
+	 * @returns Boolean
+	 */
 	statusVPN() {
 		return this.isRun;
 	}
 	
+	/**
+	 * 启动OpenVPN线程
+	 * @returns void
+	 */
 	startVPN() {
 		if (this.isRun)
 			return;
@@ -156,6 +163,9 @@ class OpenVPNCore {
 
 	}
 	
+	/**
+	 * 主程序退出关闭OpenVPN线程
+	 */
 	stopVPNonError() {
 		try {
 			this.process.kill();
@@ -165,6 +175,10 @@ class OpenVPNCore {
 		}
 	}
 	
+	/**
+	 * 停止OpenVPN线程
+	 * @returns void
+	 */
 	stopVPN() {
 		if (!this.isRun)
 			return;

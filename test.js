@@ -24,7 +24,7 @@ let roleDAO = new RoleDAO(config.dataBase);
 
 //配置IPtablesManager
 let mIptablesManager = new IptablesManager();
-//从数据库添加网段
+//从数据库添加防火墙网段
 let network_map = {};
 networkDAO.getAllNetworks()
 .then(datas => {
@@ -50,8 +50,7 @@ networkDAO.getAllNetworks()
 		mIptablesManager.createChain(role.uid, nets);
 	}
 });
-
-//从数据库获取对应用户的角色
+//从数据库获取对应用户的角色防火墙规则
 mIptablesManager.queryRoleFromCN = async (cn) => {
 	let roles = [];
 	try {
