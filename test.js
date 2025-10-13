@@ -10,7 +10,9 @@ const IptablesManager = require('./core/iptables/manager.js');
 const IptablesRuleBean = require('./core/iptables/ruleBean.js');
 //导入Httpserver包
 const HttpServer = require('./httpserver/httpServer.js');
+const TokenManager = require('./httpserver/tokenManager.js');
 const UserController = require('./httpserver/userController.js');
+const RoleController = require('./httpserver/roleController.js');
 //导入DAO包
 const UserDAO = require('./dao/userDAO.js');
 const RoleDAO = require('./dao/roleDAO.js');
@@ -18,7 +20,7 @@ const NetworkDAO = require('./dao/networkDAO.js');
 
 //初始化数据库
 let networkDAO = new NetworkDAO(config.dataBase);
-let userDao = new UserDAO(config.dataBase);
+let userDAO = new UserDAO(config.dataBase);
 let roleDAO = new RoleDAO(config.dataBase);
 
 
@@ -54,7 +56,7 @@ networkDAO.getAllNetworks()
 mIptablesManager.queryRoleFromCN = async (cn) => {
 	let roles = [];
 	try {
-		let user = await userDao.getUserByName(cn);
+		let user = await userDAO.getUserByName(cn);
 		roles = user.roles;
 	} catch(e) {
 		console.error(e);
@@ -65,10 +67,11 @@ mIptablesManager.queryRoleFromCN = async (cn) => {
 //配置OpenVPN
 let mOpenVPNConfig = new OpenVPNConfig();
 let mOpenVPNCore = new OpenVPNCore(mOpenVPNConfig);
+let mOpenVPNManager = mOpenVPNCore.manager; //获取VPN Management
 //配置验证
 mOpenVPNCore.author = async (user, pass) => {
 	console.log(`user: ${user}, pass: ${pass}`);
-	let result = await userDao.authLogin(user, pass);
+	let result = await userDAO.authLogin(user, pass);
 	switch (result) {
 		case 0:// 登录成功
 			return '0';
@@ -85,7 +88,7 @@ mOpenVPNCore.clientConfigGetter = async (user) => {
 	console.log(`clientConfigGetterUser: ${user}`);
 	try {
 		let routes = "";
-		let userInfo = await userDao.getUserByName(user);
+		let userInfo = await userDAO.getUserByName(user);
 		console.debug(userInfo);
 		for (let roleID of userInfo.roles) {
 			let role = await roleDAO.getRoleByUID(roleID);
@@ -108,10 +111,21 @@ mOpenVPNCore.clientConfigGetter = async (user) => {
 mOpenVPNCore.startVPN();
 
 //配置Http服务器
-let userController = new UserController().create();
-let server = new HttpServer(config.httpServer.port);
-server.configureServer('user', userController);
-server.startServer();
+let tokenManager = new TokenManager(userDAO, roleDAO);
+let userController = new UserController(tokenManager)
+						.setUserDAO(userDAO)
+						.setRoleDAO(roleDAO)
+						.create();
+let roleController = new RoleController(tokenManager)
+						.setUserDAO(userDAO)
+						.setRoleDAO(roleDAO)
+						.create();
+
+let server = new HttpServer(config.httpServer.port)
+	.configureServer('user', userController)
+	.configureServer('role', roleController)
+	.setTokenManager(tokenManager)
+	.startServer();
 
 // setInterval(() => {
 // 	mOpenVPNCore.manager.getClientList(data => {
