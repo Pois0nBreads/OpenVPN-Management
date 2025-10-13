@@ -12,7 +12,6 @@ class HttpServer {
         let _this = this;
         this.app = express();
         this.port = port || 8080;
-        this.authorizator = () => 0; //默认权限为0
 
         this.app.use(cookieParser());
 
@@ -27,7 +26,8 @@ class HttpServer {
             if (normalizedPath.startsWith('/api')) {
                 let token = req.cookies.token;
                 console.log(token);
-                req.__access_level = _this.authorizator(token);
+                req.__access_level = _this.authorization(token).level;
+                req.__access_user = _this.authorization(token).user;
             }
 
             // 检查规范化后的路径是否仍在公共目录内
@@ -48,12 +48,21 @@ class HttpServer {
         this.app.use('/', express.static(path.join('./public')));
     }
 
-    setAuthorizator(handler) {
-        this.authorizator = handler;
+    authorization(token) {
+        if (!this.tokenManager) 
+            return {level: 0, user: ""};
+        let info = this.tokenManager.getInfoByToken(token);
+	    return {level: info.level, user: info.user};
+    }
+
+    setTokenManager(tokenManager) {
+        this.tokenManager = tokenManager;
+        return this;
     }
 
     configureServer(prefix, router) {
         this.app.use(path.join('/api', prefix), router);
+        return this;
     }
 
     startServer() {
@@ -61,6 +70,7 @@ class HttpServer {
         this.app.listen(this.port, () => {
             console.log(`Http服务器运行在 http://localhost:${_this.port}`);
         });
+        return this;
     }
 }
 
