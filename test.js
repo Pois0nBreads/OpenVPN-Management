@@ -111,7 +111,7 @@ mOpenVPNCore.clientConfigGetter = async (user) => {
 mOpenVPNCore.startVPN();
 
 //配置Http服务器
-let tokenManager = new TokenManager(userDAO, roleDAO);
+let tokenManager = new TokenManager(userDAO);
 let userController = new UserController(tokenManager)
 						.setUserDAO(userDAO)
 						.setRoleDAO(roleDAO)
