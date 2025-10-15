@@ -117,6 +117,8 @@ class UserDAO {
      * @returns {Promise<Object>} 插入结果
      */
     async addUser(name, pass) {
+        if (name == 'Administrator')
+            throw new Error("Failed to add user. User already exists!");
         try {
             const existingUser = await this.getUserByName(name);
             
@@ -138,6 +140,8 @@ class UserDAO {
      * @returns {Promise<Object>} 删除结果
      */
     async delUserByName(name) {
+        if (name == 'Administrator')
+            throw new Error("Failed to del user. Administrator cannot delete!");
         try {
             const existingUser = await this.getUserByName(name);
             
