@@ -13,6 +13,7 @@ const HttpServer = require('./httpserver/httpServer.js');
 const TokenManager = require('./httpserver/tokenManager.js');
 const UserController = require('./httpserver/userController.js');
 const RoleController = require('./httpserver/roleController.js');
+const NetworkController = require('./httpserver/networkController.js');
 //导入DAO包
 const UserDAO = require('./dao/userDAO.js');
 const RoleDAO = require('./dao/roleDAO.js');
@@ -120,10 +121,15 @@ let roleController = new RoleController(tokenManager)
 						.setUserDAO(userDAO)
 						.setRoleDAO(roleDAO)
 						.create();
+let networkController = new NetworkController(tokenManager)
+						.setUserDAO(userDAO)
+						.setRoleDAO(roleDAO)
+						.create();
 
 let server = new HttpServer(config.httpServer.port)
 	.configureServer('user', userController)
 	.configureServer('role', roleController)
+	.configureServer('network', networkController)
 	.setTokenManager(tokenManager)
 	.startServer();
 

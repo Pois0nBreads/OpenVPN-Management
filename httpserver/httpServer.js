@@ -19,13 +19,12 @@ class HttpServer {
         this.app.use(function (req, res, next) {
             // 规范化路径并解析相对路径符号
             const normalizedPath = normalizePath(path.resolve('/', req.path));
-            console.log(normalizedPath);
 
             //解析token向后传递访问权限
             // 0: 匿名用户 1: 普通用户 2: 管理员
             if (normalizedPath.startsWith('/api')) {
                 let token = req.cookies.token;
-                console.log(token);
+                console.debug(`token: ${token}`);
                 req.__access_level = _this.authorization(token).level;
                 req.__access_user = _this.authorization(token).user;
             }
