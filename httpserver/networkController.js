@@ -1,10 +1,10 @@
 /**
-*	package httpserver/roleController.js
+*	package httpserver/networkController.js
 **/
 const express = require('express');
 const bodyParser = require('body-parser');
 
-class RoleController {
+class NetworkController {
     constructor(tokenManager) {
         this.tokenManager = tokenManager;
         let router = express.Router();
@@ -15,7 +15,7 @@ class RoleController {
         router.use(function (req, res, next) {
             let level = req.__access_level;
             let user = req.__access_user;
-            console.debug(`RoleController: path - ${req.path}, user - ${user}, level - ${level}`);
+            console.debug(`NetworkController: path - ${req.path}, user - ${user}, level - ${level}`);
             switch (req.path) {
                 //管理员接口
                 case '/add':
@@ -56,4 +56,4 @@ class RoleController {
         return this.controller;
     }
 }
-module.exports = RoleController;
+module.exports = NetworkController;

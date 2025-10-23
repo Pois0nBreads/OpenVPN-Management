@@ -116,14 +116,17 @@ let tokenManager = new TokenManager(userDAO);
 let userController = new UserController(tokenManager)
 						.setUserDAO(userDAO)
 						.setRoleDAO(roleDAO)
+						.setNetworkDAO(networkDAO)
 						.create();
 let roleController = new RoleController(tokenManager)
 						.setUserDAO(userDAO)
 						.setRoleDAO(roleDAO)
+						.setNetworkDAO(networkDAO)
 						.create();
 let networkController = new NetworkController(tokenManager)
 						.setUserDAO(userDAO)
 						.setRoleDAO(roleDAO)
+						.setNetworkDAO(networkDAO)
 						.create();
 
 let server = new HttpServer(config.httpServer.port)
