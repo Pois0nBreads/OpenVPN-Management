@@ -23,7 +23,8 @@ class UserController {
                     break;
                 //用户接口
                 case '/myinfo':
-                case '/myupdate':
+                case '/myupdate/nickname':
+                case '/myupdate/passwd':
                 case '/logout':
                     if (level > 0) {
                         next();
@@ -34,7 +35,8 @@ class UserController {
                 //管理员接口
                 case '/add':
                 case '/delete':
-                case '/update':
+                case '/update/nickname':
+                case '/update/passwd':
                 case '/info':
                     if (level > 1) {
                         next();
@@ -98,7 +100,34 @@ class UserController {
          */
         router.post('/myinfo', async (req, res) => {
             let user = req.__access_user;
-            let userInfo = await this.userDAO.getUserByName(user);
+            let userData = await this.userDAO.getUserByName(user);
+            
+            let userInfo = {};
+            userInfo.uid = userData.uid;
+            userInfo.username = userData.username;
+            userInfo.nickname = userData.nickname;
+            userInfo.last_login = userData.last_login;
+            userInfo.roles = [];
+            for (let roleID of userData.roles) {
+                let role = await this.roleDAO.getRoleByUID(roleID);
+                let roleInfo = {};
+                roleInfo.id = role.uid;
+                roleInfo.name = role.role_name;
+                roleInfo.networkList = [];
+                for (let networkID of role.networks) {
+                    let networkList = await this.networkDAO.getNetworkByUID(networkID);
+                    let networkInfo = {};
+                    networkInfo.networks = [];
+                    networkInfo.id = networkList.uid;
+                    networkInfo.name = networkList.network_name;
+                    for (let network of networkList.networks)
+                        networkInfo.networks.push(network);
+                    roleInfo.networkList.push(networkInfo);
+                }
+                userInfo.roles.push(roleInfo);
+            }
+
+
             res.send({
                 code: 0,
                 msg: '获取成功',
@@ -106,16 +135,51 @@ class UserController {
             });
         });
         /**
-         * 修改用户自己接口 @User
+         * 修改用户自己昵称接口 @User
          */
-        router.post('/myupdate', async (req, res) => {
+        router.post('/myupdate/nickname', async (req, res) => {
             let user = req.__access_user;
-            let userInfo = await this.userDAO.getUserByName(user);
-            res.send({
-                code: 0,
-                msg: '获取成功',
-                data: userInfo
-            });
+            try {
+                let nickname = req.body.nickname;
+                if (nickname == null || nickname.trim() == '')
+                    throw new Error('nickname 不能为空');
+                let code = await this.userDAO.changeNicknameByName(user, nickname);
+                res.send({
+                    code: 0,
+                    msg: '修改成功'
+                });
+            } catch(e) {
+                res.send({
+                    code: -1,
+                    msg: '修改失败' + e
+                });
+            }
+        });
+        /**
+         * 修改用户自己密码接口 @User
+         */
+        router.post('/myupdate/passwd', async (req, res) => {
+            let user = req.__access_user;
+            try {
+                const regex = /^[A-Za-z0-9~!@#$%^&*()_=+-]+$/;
+                let password = req.body.password;
+                if (password == null || password == '')
+                    throw new Error('password 不能为空');
+                if (password.length < 8)
+                    throw new Error('password 不能小于8位');
+                if (!regex.test(password)) 
+                    throw new Error('password 包含非法字符');
+                let code = await this.userDAO.changePassByName(user, password);
+                res.send({
+                    code: 0,
+                    msg: '修改成功'
+                });
+            } catch(e) {
+                res.send({
+                    code: -1,
+                    msg: '修改失败' + e
+                });
+            }
         });
 
         /**
@@ -152,6 +216,11 @@ class UserController {
 
     setRoleDAO(dao) {
         this.roleDAO = dao;
+        return this;
+    }
+
+    setNetworkDAO(dao) {
+        this.networkDAO = dao;
         return this;
     }
 
