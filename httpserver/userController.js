@@ -212,6 +212,7 @@ class UserController {
                     throw new Error('password 只允许包含大小写英文数字和 ~!@#$%^&*()_=+-');
 
                 let code = await this.userDAO.addUser(username, password);
+                await this.tokenManager.syncDatabase(); //刷新tokenManage缓存
                 res.send({
                     code: 0,
                     msg: '创建用户成功'
@@ -237,6 +238,7 @@ class UserController {
                     throw new Error('username 只允许包含英文大小写和数字');
 
                 let code = await this.userDAO.delUserByName(username);
+                await this.tokenManager.syncDatabase(); //刷新tokenManage缓存
                 res.send({
                     code: 0,
                     msg: '删除用户成功'
