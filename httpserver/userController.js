@@ -4,6 +4,15 @@
 const express = require('express');
 const bodyParser = require('body-parser');
 
+function isValidPassword(pass) {
+    const regex = /^[A-Za-z0-9~!@#$%^&*()_=+-]+$/;
+    return regex.test(pass);
+}
+function isValidUserName(name) {
+    const regex = /^[A-Za-z0-9]+$/;
+    return regex.test(name);
+}
+
 class UserController {
     constructor(tokenManager) {
         this.tokenManager = tokenManager;
@@ -161,13 +170,12 @@ class UserController {
         router.post('/myupdate/passwd', async (req, res) => {
             let user = req.__access_user;
             try {
-                const regex = /^[A-Za-z0-9~!@#$%^&*()_=+-]+$/;
                 let password = req.body.password;
                 if (password == null || password == '')
                     throw new Error('password 不能为空');
                 if (password.length < 8)
                     throw new Error('password 不能小于8位');
-                if (!regex.test(password)) 
+                if (!isValidPassword(password)) 
                     throw new Error('password 包含非法字符');
                 let code = await this.userDAO.changePassByName(user, password);
                 res.send({
@@ -185,26 +193,148 @@ class UserController {
         /**
          * 增加用户接口 @Admin
          */
-        router.post('/add', (req, res) => {
-            res.send('????????');
+        router.post('/add', async (req, res) => {
+            try {
+                let username = req.body.username;
+                if (username == null || username == '')
+                    throw new Error('username 不能为空');
+                if (username.length < 5)
+                    throw new Error('username 不能小于8位');
+                if (!isValidUserName(username)) 
+                    throw new Error('username 只允许包含英文大小写和数字');
+
+                let password = req.body.password;
+                if (password == null || password == '')
+                    throw new Error('password 不能为空');
+                if (password.length < 8)
+                    throw new Error('password 不能小于8位');
+                if (!isValidPassword(password)) 
+                    throw new Error('password 只允许包含大小写英文数字和 ~!@#$%^&*()_=+-');
+
+                let code = await this.userDAO.addUser(username, password);
+                res.send({
+                    code: 0,
+                    msg: '创建用户成功'
+                });
+            } catch(e) {
+                res.send({
+                    code: -1,
+                    msg: '创建用户失败' + e
+                });
+            }
         });
         /**
          * 删除用户接口 @Admin
          */
-        router.post('/delete', (req, res) => {
-            res.send('????????');
+        router.post('/delete', async (req, res) => {
+            try {
+                let username = req.body.username;
+                if (username == null || username == '')
+                    throw new Error('username 不能为空');
+                if (username.length < 5)
+                    throw new Error('username 不能小于8位');
+                if (!isValidUserName(username)) 
+                    throw new Error('username 只允许包含英文大小写和数字');
+
+                let code = await this.userDAO.delUserByName(username);
+                res.send({
+                    code: 0,
+                    msg: '删除用户成功'
+                });
+            } catch(e) {
+                res.send({
+                    code: -1,
+                    msg: '删除用户失败' + e
+                });
+            }
         });
         /**
-         * 修改用户接口 @Admin
+         * 修改用户密码接口 @Admin
          */
-        router.post('/update', (req, res) => {
-            res.send('????????');
+        router.post('/update/passwd', async (req, res) => {
+            try {
+                let username = req.body.username;
+                if (username == null || username == '')
+                    throw new Error('username 不能为空');
+                if (username.length < 5)
+                    throw new Error('username 不能小于8位');
+                if (!isValidUserName(username)) 
+                    throw new Error('username 只允许包含英文大小写和数字');
+
+                let password = req.body.password;
+                if (password == null || password == '')
+                    throw new Error('password 不能为空');
+                if (password.length < 8)
+                    throw new Error('password 不能小于8位');
+                if (!isValidPassword(password)) 
+                    throw new Error('password 只允许包含大小写英文数字和 ~!@#$%^&*()_=+-');
+
+                let code = await this.userDAO.changePassByName(username, password);
+                res.send({
+                    code: 0,
+                    msg: '修改用户密码成功'
+                });
+            } catch(e) {
+                res.send({
+                    code: -1,
+                    msg: '修改用户密码失败' + e
+                });
+            }
+        });
+        /**
+         * 修改用户昵称接口 @Admin
+         */
+        router.post('/update/nickname', async (req, res) => {
+            try {
+                let username = req.body.username;
+                if (username == null || username == '')
+                    throw new Error('username 不能为空');
+                if (username.length < 5)
+                    throw new Error('username 不能小于8位');
+                if (!isValidUserName(username)) 
+                    throw new Error('username 只允许包含英文大小写和数字');
+
+                let nickname = req.body.nickname;
+                if (nickname == null || nickname == '')
+                    throw new Error('nickname 不能为空');
+
+                let code = await this.userDAO.changeNicknameByName(username, nickname);
+                res.send({
+                    code: 0,
+                    msg: '修改用户昵称成功'
+                });
+            } catch(e) {
+                res.send({
+                    code: -1,
+                    msg: '修改用户昵称失败' + e
+                });
+            }
         });
         /**
          * 查询用户接口 @Admin
          */
-        router.post('/info', (req, res) => {
-            res.send('????????');
+        router.post('/info', async (req, res) => {
+            try {
+                let username = req.body.username;
+                if (username == null || username == '')
+                    throw new Error('username 不能为空');
+                if (username.length < 5)
+                    throw new Error('username 不能小于8位');
+                if (!isValidUserName(username)) 
+                    throw new Error('username 只允许包含英文大小写和数字');
+
+                let userData = await this.userDAO.getUserByName(user);
+                res.send({
+                    code: 0,
+                    msg: '查询用户成功',
+                    data: userData
+                });
+            } catch(e) {
+                res.send({
+                    code: -1,
+                    msg: '查询用户失败' + e
+                });
+            }
         });
         this.controller = router;
     }
