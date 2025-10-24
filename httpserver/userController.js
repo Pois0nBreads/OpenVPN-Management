@@ -46,6 +46,7 @@ class UserController {
                 case '/delete':
                 case '/update/nickname':
                 case '/update/passwd':
+                case '/update/roles':
                 case '/info':
                 case '/getAll':
                     if (level > 1) {
@@ -314,6 +315,41 @@ class UserController {
             }
         });
         /**
+         * 修改用户规则接口 @Admin
+         */
+        router.post('/update/roles', async (req, res) => {
+            try {
+                let username = req.body.username;
+                if (username == null || username == '')
+                    throw new Error('username 不能为空');
+                if (username.length < 5)
+                    throw new Error('username 不能小于8位');
+                if (!isValidUserName(username)) 
+                    throw new Error('username 只允许包含英文大小写和数字');
+
+                let roles = req.body.roles;
+                if (roles == null || roles == '')
+                    throw new Error('roles 不能为空');
+                if (!Array.isArray(roles))
+                    throw new Error('roles 必须是数组');
+                for (let roleID of roles) {
+                    if (!await this.roleDAO.roleExists(roleID))
+                        throw new Error(`roleID:${roleID} 角色不存在`);
+                }
+
+                let code = await this.userDAO.changeRolesByName(username, roles);
+                res.send({
+                    code: 0,
+                    msg: '修改用户昵称成功'
+                });
+            } catch(e) {
+                res.send({
+                    code: -1,
+                    msg: '修改用户昵称失败' + e
+                });
+            }
+        });
+        /**
          * 查询用户接口 @Admin
          */
         router.post('/info', async (req, res) => {
@@ -340,7 +376,7 @@ class UserController {
             }
         });
         /**
-         * 查询用户接口 @Admin
+         * 查询全部用户接口 @Admin
          */
         router.post('/getAll', async (req, res) => {
             try {
