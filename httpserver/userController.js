@@ -47,6 +47,7 @@ class UserController {
                 case '/update/nickname':
                 case '/update/passwd':
                 case '/info':
+                case '/getAll':
                     if (level > 1) {
                         next();
                         break;
@@ -330,6 +331,24 @@ class UserController {
                     code: 0,
                     msg: '查询用户成功',
                     data: userData
+                });
+            } catch(e) {
+                res.send({
+                    code: -1,
+                    msg: '查询用户失败' + e
+                });
+            }
+        });
+        /**
+         * 查询用户接口 @Admin
+         */
+        router.post('/getAll', async (req, res) => {
+            try {
+                let users = await this.userDAO.getAllUsers();
+                res.send({
+                    code: 0,
+                    msg: '查询用户成功',
+                    data: users
                 });
             } catch(e) {
                 res.send({
