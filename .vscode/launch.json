@@ -8,27 +8,21 @@
             "name": "Test1",
             "program": "${workspaceFolder}/test.js",
             "request": "launch",
-            "skipFiles": [
-                "<node_internals>/**"
-            ],
+            "runtimeExecutable": "/root/.nvm/versions/node/v18.20.8/bin/node",
             "type": "node"
         },
         {
             "name": "Test2",
             "program": "${workspaceFolder}/test2.js",
+            "runtimeExecutable": "/root/.nvm/versions/node/v18.20.8/bin/node",
             "request": "launch",
-            "skipFiles": [
-                "<node_internals>/**"
-            ],
             "type": "node"
         },
         {
             "type": "node",
             "request": "launch",
+            "runtimeExecutable": "/root/.nvm/versions/node/v18.20.8/bin/node",
             "name": "启动程序",
-            "skipFiles": [
-                "<node_internals>/**"
-            ],
             "program": "${workspaceFolder}/index.js"
         }
     ]
