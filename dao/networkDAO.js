@@ -7,9 +7,10 @@
  * }
  * 
  */
+const { Network } = require('inspector');
 const mysql = require('mysql');
 const util = require('util');
-const net = require('net');
+const Netmask = require('netmask').Netmask;
 
 const NETWORK_TABLE_NAME = "network";
 
@@ -106,8 +107,10 @@ class NetworkDAO {
             if (existingNetwork) {
                 throw new Error("Failed to add network. Network name already exists!");
             }
-            
-            const networkstr = networks.join(',');
+            let cidrs = [];
+            for (let network of networks)
+                cidrs.push(new Network(network).toString());
+            const networkstr = cidrs.join(',');
             const sql = `INSERT INTO ${NETWORK_TABLE_NAME} (network_name, networks) VALUES (?, ?)`;
             const result = await this.pool.query(sql, [networkName, networkstr]);
             return result;
@@ -178,8 +181,10 @@ class NetworkDAO {
             if (!existingNetwork) {
                 throw new Error("Failed to modify network. Network does not exist!");
             }
-            
-            const networkstr = networks.join(',');
+            let cidrs = [];
+            for (let network of networks)
+                cidrs.push(new Network(network).toString());
+            const networkstr = cidrs.join(',');
             const sql = `UPDATE ${NETWORK_TABLE_NAME} SET networks = ? WHERE uid = ?`;
             const result = await this.pool.query(sql, [networkstr, uid]);
             return result;
@@ -233,58 +238,33 @@ class NetworkDAO {
      * @returns {boolean} 是否在范围内
      */
     isIPInCIDR(ip, cidr) {
-        // 简化的CIDR检查实现
-        // 实际项目中应该使用专门的CIDR处理库
-        if (!cidr.includes('/')) {
-            return ip === cidr;
-        }
-        
-        const [network, prefix] = cidr.split('/');
-        // 这里可以实现完整的CIDR验证逻辑
-        return ip.startsWith(network.split('.').slice(0, parseInt(prefix) / 8).join('.') + '.');
+        const block = new Netmask(cidr);
+        return block.contains(ip)
     }
 
-    cidrToRange(cidr) {
+    /**
+     * 检查IP是否符合cidr
+     * @param {string} cidr CIDR表示法
+     * @returns {boolean} 是否有效
+     */
+    isValidCIDRnet(cidr) {
         try {
-            const [baseIp, maskBits] = cidr.split('/');
-            if (!baseIp || !maskBits) throw new Error('Invalid CIDR format');
-
-            const mask = ~(0xFFFFFFFF >>> maskBits);
-            const start = baseIp;
-            const end = (start | ~mask) >>> 0;
-
-            return {
-                start: net.fromLong(start),
-                end: net.fromLong(end),
-                toString: () => `${net.fromLong(start)} ${net.fromLong(end)}`
-            };
-        } catch (e) {
-            throw new Error(`Conversion failed: ${e.message}`);
+            let net = new Netmask(cidr);
+            let ip = cidr.split('/');
+            if (ip.length != 2)
+                return false;
+            return ip[0] === net.base && ip[1] != null;
+        } catch(e) {
+            return false;
         }
     }
-    cidrToRange(cidr) {
-        const [ip, prefix] = cidr.split('/');
-        if (!ip || !prefix) throw new Error('Invalid CIDR format');
-        
-        const prefixLength = parseInt(prefix, 10);
-        if (prefixLength < 0 || prefixLength > 32) throw new Error('Invalid prefix length');
-    
-        // 计算子网掩码
-        let mask = 0xFFFFFFFF << (32 - prefixLength);
-        mask = mask >>> 0; // 转换为无符号32位整数
-        
-        // 将掩码转为IP格式
-        const maskOctets = [
-            (mask >>> 24) & 0xFF,
-            (mask >>> 16) & 0xFF,
-            (mask >>> 8) & 0xFF,
-            mask & 0xFF
-        ].join('.');
 
+    cidrToRange(cidr) {
+        let range = new Netmask(cidr);
         return {
-            ip: ip,
-            maskOctets: maskOctets,
-            toString: () => `${ip} ${maskOctets}`
+            ip: range.base,
+            mask: range.mask,
+            toString: () => `${range.base} ${range.mask}`
         };
     }
 }
