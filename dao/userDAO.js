@@ -38,11 +38,23 @@ class UserDAO {
         this.pool.query = util.promisify(this.pool.query);
     }
 
+    async initAdministrator() {
+        const sql1 = `SELECT * FROM ${USER_TABLE_NAME} where username = 'Administrator'`;
+        const data1 = await this.pool.query(sql1);
+        if (data1.length > 0)
+            return null;
+        const defaultPass = '88888888';
+        console.log(`Administrator not found, Create Administrator Pass is ${defaultPass}`);
+        const sql2 = `INSERT INTO ${USER_TABLE_NAME} (username, password) VALUES ('Administrator', '${sha256Hash(defaultPass)}')`;
+        const data2 = await this.pool.query(sql2);
+        return data2;
+    }
+
     /**
      * 获取全部用户
      * @returns {Promise<Array>} 用户列表
      */
-    async getAllUsers() {
+    async getAllUsers(getPass = false) {
         try {
             const sql = `SELECT * FROM ${USER_TABLE_NAME}`;
             const data = await this.pool.query(sql);
@@ -50,6 +62,8 @@ class UserDAO {
             // 处理 roles 字段
             for (let i = 0; i < data.length; i++) {
                 data[i].roles = data[i].roles.split(',').filter(Boolean);
+                if (!getPass)
+                    delete data[i].password;
             }
             
             return data;
@@ -63,7 +77,7 @@ class UserDAO {
      * @param {string} name 用户名
      * @returns {Promise<Object|null>} 用户信息或null
      */
-    async getUserByName(name) {
+    async getUserByName(name, getPass = false) {
         try {
             const sql = `SELECT * FROM ${USER_TABLE_NAME} WHERE username = ?`;
             const result = await this.pool.query(sql, [name]);
@@ -74,6 +88,8 @@ class UserDAO {
             
             const data = result[0];
             data.roles = data.roles.split(',').filter(Boolean);
+            if (!getPass)
+                delete data.password;
             return data;
         } catch (err) {
             throw err;
@@ -88,7 +104,7 @@ class UserDAO {
      */
     async authLogin(user, pass) {
         try {
-            const result = await this.getUserByName(user);
+            const result = await this.getUserByName(user, true);
             
             if (!result) {
                 return 1; // 用户不存在
