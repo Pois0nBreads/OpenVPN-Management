@@ -6,6 +6,22 @@ const path = require('path');
 const normalizePath = require('normalize-path');
 const cookieParser = require('cookie-parser');
 
+function getBearerToken(req) {
+    // 获取 Authorization 头
+    const authHeader = req.headers['authorization'];
+    if (!authHeader) {
+        return null;
+    }
+    
+    // 检查格式是否为 "Bearer [token]"
+    const [type, token] = authHeader.split(' ');
+    if (type !== 'Bearer' || !token) {
+        return null;
+    }
+    
+    return token;
+}
+
 class HttpServer {
 
     constructor(port) {
@@ -23,7 +39,8 @@ class HttpServer {
             //解析token向后传递访问权限
             // 0: 匿名用户 1: 普通用户 2: 管理员
             if (normalizedPath.startsWith('/api')) {
-                let token = req.cookies.token;
+                //let token = req.cookies.token;
+                let token = getBearerToken(req);
                 console.debug(`token: ${token}`);
                 req.__access_level = _this.authorization(token).level;
                 req.__access_user = _this.authorization(token).user;
