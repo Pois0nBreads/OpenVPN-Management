@@ -65,7 +65,7 @@ const NetworkDAO = require('./dao/networkDAO.js');
 	};
 
 	//配置OpenVPN
-	let mOpenVPNConfig = new OpenVPNConfig();
+	let mOpenVPNConfig = new OpenVPNConfig({ http_server_port: config.httpServer.port });
 	let mOpenVPNCore = new OpenVPNCore(mOpenVPNConfig);
 	let mOpenVPNManager = mOpenVPNCore.manager; //获取VPN Management
 	//配置验证

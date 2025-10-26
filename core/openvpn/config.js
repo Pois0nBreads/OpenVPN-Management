@@ -4,7 +4,7 @@
 
 class OpenVPNConfig {
 	
-	constructor() {
+	constructor(options) {
 		this.run_path		= global.run_path;
 		this.ssl_path		= this.run_path + 'ssl/';
 		this.verif_script	= this.run_path + 'core/openvpn/passwd.py';
@@ -17,6 +17,8 @@ class OpenVPNConfig {
 		this.server_net		= "192.168.110.0";		//VPN虚拟网段
 		this.server_mask	= "255.255.255.0";		//VPN虚拟掩码
 		this.chiper			= "AES-256-CBC";		//VPN加密协议
+		this.http_server_ip	= "127.0.0.1";			//VPN加密协议
+		this.http_server_port = "8080";				//VPN加密协议
 		
 		if (typeof(options) == 'object')
 			Object.assign(this, options);
@@ -59,6 +61,7 @@ class OpenVPNConfig {
 				`--port`, `${this.port}`,
 				`--dev`, `${this.dev}`,
 				`--proto`, `${this.proto}`,
+				`--port-share`, `${this.http_server_ip}`, `${this.http_server_port}`,
 				`--topology`, `subnet`,
 				`--verify-client-cert`, `none`,
 				`--username-as-common-name`,
