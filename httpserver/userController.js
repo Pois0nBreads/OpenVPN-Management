@@ -28,6 +28,7 @@ class UserController {
             switch (req.path) {
                 case '/hello':
                 case '/login':
+                case '/mylevel':
                     next();
                     break;
                 //用户接口
@@ -74,18 +75,22 @@ class UserController {
                 switch (resultCode) {
                     case 0:
                         let token = this.tokenManager.createToken(data.user);
+                        let info = this.tokenManager.getInfoByToken(token);
                         result.code = 0;
                         result.token = token;
+                        result.level = info.level;
                         result.msg = '登陆成功';
                         break;
                     case 1:
                         result.code = 1;
                         result.token = '';
+                        result.level = 0;
                         result.msg = '用户不存在';
                         break;
                     case 2:
                         result.code = 2;
                         result.token = '';
+                        result.level = 0;
                         result.msg = '密码错误';
                         break;
                 }
@@ -107,12 +112,25 @@ class UserController {
             });
         });
         /**
+         * 查询用户自己权限接口 @User
+         */
+        router.post('/mylevel', async (req, res) => {
+            let user = req.__access_user;
+            let level = req.__access_level;
+            res.send({
+                code: 0,
+                msg: '获取成功',
+                user: user,
+                level: level
+            });
+        });
+        /**
          * 查询用户自己接口 @User
          */
         router.post('/myinfo', async (req, res) => {
             let user = req.__access_user;
             let userData = await this.userDAO.getUserByName(user);
-            
+
             let userInfo = {};
             userInfo.uid = userData.uid;
             userInfo.username = userData.username;
@@ -159,7 +177,7 @@ class UserController {
                     code: 0,
                     msg: '修改成功'
                 });
-            } catch(e) {
+            } catch (e) {
                 res.send({
                     code: -1,
                     msg: '修改失败' + e
@@ -177,14 +195,14 @@ class UserController {
                     throw new Error('password 不能为空');
                 if (password.length < 8)
                     throw new Error('password 不能小于8位');
-                if (!isValidPassword(password)) 
+                if (!isValidPassword(password))
                     throw new Error('password 包含非法字符');
                 let code = await this.userDAO.changePassByName(user, password);
                 res.send({
                     code: 0,
                     msg: '修改成功'
                 });
-            } catch(e) {
+            } catch (e) {
                 res.send({
                     code: -1,
                     msg: '修改失败' + e
@@ -202,7 +220,7 @@ class UserController {
                     throw new Error('username 不能为空');
                 if (username.length < 5)
                     throw new Error('username 不能小于8位');
-                if (!isValidUserName(username)) 
+                if (!isValidUserName(username))
                     throw new Error('username 只允许包含英文大小写和数字');
 
                 let password = req.body.password;
@@ -210,7 +228,7 @@ class UserController {
                     throw new Error('password 不能为空');
                 if (password.length < 8)
                     throw new Error('password 不能小于8位');
-                if (!isValidPassword(password)) 
+                if (!isValidPassword(password))
                     throw new Error('password 只允许包含大小写英文数字和 ~!@#$%^&*()_=+-');
 
                 let code = await this.userDAO.addUser(username, password);
@@ -219,7 +237,7 @@ class UserController {
                     code: 0,
                     msg: '创建用户成功'
                 });
-            } catch(e) {
+            } catch (e) {
                 res.send({
                     code: -1,
                     msg: '创建用户失败' + e
@@ -236,7 +254,7 @@ class UserController {
                     throw new Error('username 不能为空');
                 if (username.length < 5)
                     throw new Error('username 不能小于8位');
-                if (!isValidUserName(username)) 
+                if (!isValidUserName(username))
                     throw new Error('username 只允许包含英文大小写和数字');
 
                 let code = await this.userDAO.delUserByName(username);
@@ -245,7 +263,7 @@ class UserController {
                     code: 0,
                     msg: '删除用户成功'
                 });
-            } catch(e) {
+            } catch (e) {
                 res.send({
                     code: -1,
                     msg: '删除用户失败' + e
@@ -262,7 +280,7 @@ class UserController {
                     throw new Error('username 不能为空');
                 if (username.length < 5)
                     throw new Error('username 不能小于8位');
-                if (!isValidUserName(username)) 
+                if (!isValidUserName(username))
                     throw new Error('username 只允许包含英文大小写和数字');
 
                 let password = req.body.password;
@@ -270,7 +288,7 @@ class UserController {
                     throw new Error('password 不能为空');
                 if (password.length < 8)
                     throw new Error('password 不能小于8位');
-                if (!isValidPassword(password)) 
+                if (!isValidPassword(password))
                     throw new Error('password 只允许包含大小写英文数字和 ~!@#$%^&*()_=+-');
 
                 let code = await this.userDAO.changePassByName(username, password);
@@ -278,7 +296,7 @@ class UserController {
                     code: 0,
                     msg: '修改用户密码成功'
                 });
-            } catch(e) {
+            } catch (e) {
                 res.send({
                     code: -1,
                     msg: '修改用户密码失败' + e
@@ -295,7 +313,7 @@ class UserController {
                     throw new Error('username 不能为空');
                 if (username.length < 5)
                     throw new Error('username 不能小于8位');
-                if (!isValidUserName(username)) 
+                if (!isValidUserName(username))
                     throw new Error('username 只允许包含英文大小写和数字');
 
                 let nickname = req.body.nickname;
@@ -307,7 +325,7 @@ class UserController {
                     code: 0,
                     msg: '修改用户昵称成功'
                 });
-            } catch(e) {
+            } catch (e) {
                 res.send({
                     code: -1,
                     msg: '修改用户昵称失败' + e
@@ -324,7 +342,7 @@ class UserController {
                     throw new Error('username 不能为空');
                 if (username.length < 5)
                     throw new Error('username 不能小于8位');
-                if (!isValidUserName(username)) 
+                if (!isValidUserName(username))
                     throw new Error('username 只允许包含英文大小写和数字');
 
                 let roles = req.body.roles;
@@ -342,7 +360,7 @@ class UserController {
                     code: 0,
                     msg: '修改用户昵称成功'
                 });
-            } catch(e) {
+            } catch (e) {
                 res.send({
                     code: -1,
                     msg: '修改用户昵称失败' + e
@@ -359,7 +377,7 @@ class UserController {
                     throw new Error('username 不能为空');
                 if (username.length < 5)
                     throw new Error('username 不能小于8位');
-                if (!isValidUserName(username)) 
+                if (!isValidUserName(username))
                     throw new Error('username 只允许包含英文大小写和数字');
 
                 let userData = await this.userDAO.getUserByName(user);
@@ -368,7 +386,7 @@ class UserController {
                     msg: '查询用户成功',
                     data: userData
                 });
-            } catch(e) {
+            } catch (e) {
                 res.send({
                     code: -1,
                     msg: '查询用户失败' + e
@@ -386,7 +404,7 @@ class UserController {
                     msg: '查询用户成功',
                     data: users
                 });
-            } catch(e) {
+            } catch (e) {
                 res.send({
                     code: -1,
                     msg: '查询用户失败' + e

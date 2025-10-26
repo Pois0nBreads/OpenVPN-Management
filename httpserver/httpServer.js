@@ -40,7 +40,7 @@ class HttpServer {
             // 0: 匿名用户 1: 普通用户 2: 管理员
             if (normalizedPath.startsWith('/api')) {
                 //let token = req.cookies.token;
-                let token = getBearerToken(req);
+                let token = req.headers['authorization'];
                 console.debug(`token: ${token}`);
                 req.__access_level = _this.authorization(token).level;
                 req.__access_user = _this.authorization(token).user;
