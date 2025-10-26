@@ -14,13 +14,14 @@ const TokenManager = require('./httpserver/tokenManager.js');
 const UserController = require('./httpserver/userController.js');
 const RoleController = require('./httpserver/roleController.js');
 const NetworkController = require('./httpserver/networkController.js');
+const SystemController = require('./httpserver/systemController.js');
 //导入DAO包
 const UserDAO = require('./dao/userDAO.js');
 const RoleDAO = require('./dao/roleDAO.js');
 const NetworkDAO = require('./dao/networkDAO.js');
 
 
-(async function() {
+(async function () {
 	//初始化数据库
 	let networkDAO = new NetworkDAO(config.dataBase);
 	let userDAO = new UserDAO(config.dataBase);
@@ -51,14 +52,14 @@ const NetworkDAO = require('./dao/networkDAO.js');
 		}
 		mIptablesManager.createChain(role.uid, nets);
 	}
-	
+
 	//从数据库获取对应用户的角色防火墙规则
 	mIptablesManager.queryRoleFromCN = async (cn) => {
 		let roles = [];
 		try {
 			let user = await userDAO.getUserByName(cn);
 			roles = user.roles;
-		} catch(e) {
+		} catch (e) {
 			console.error(e);
 		}
 		return roles;
@@ -113,25 +114,28 @@ const NetworkDAO = require('./dao/networkDAO.js');
 	//配置Http服务器
 	let tokenManager = new TokenManager(userDAO);
 	let userController = new UserController(tokenManager)
-							.setUserDAO(userDAO)
-							.setRoleDAO(roleDAO)
-							.setNetworkDAO(networkDAO)
-							.create();
+		.setUserDAO(userDAO)
+		.setRoleDAO(roleDAO)
+		.setNetworkDAO(networkDAO)
+		.create();
 	let roleController = new RoleController(tokenManager)
-							.setUserDAO(userDAO)
-							.setRoleDAO(roleDAO)
-							.setNetworkDAO(networkDAO)
-							.create();
+		.setUserDAO(userDAO)
+		.setRoleDAO(roleDAO)
+		.setNetworkDAO(networkDAO)
+		.create();
 	let networkController = new NetworkController(tokenManager)
-							.setUserDAO(userDAO)
-							.setRoleDAO(roleDAO)
-							.setNetworkDAO(networkDAO)
-							.create();
+		.setUserDAO(userDAO)
+		.setRoleDAO(roleDAO)
+		.setNetworkDAO(networkDAO)
+		.create();
+	let systemController = new SystemController(tokenManager)
+		.create();
 
 	let server = new HttpServer(config.httpServer.port)
 		.configureServer('user', userController)
 		.configureServer('role', roleController)
 		.configureServer('network', networkController)
+		.configureServer('system', systemController)
 		.setTokenManager(tokenManager)
 		.startServer();
 
@@ -144,5 +148,5 @@ const NetworkDAO = require('./dao/networkDAO.js');
 	// 		}
 	// 	});
 	// }, 5000);
-	
+
 })();
