@@ -27,7 +27,7 @@ class RoleController {
                 case '/delete':
                 case '/update/name':
                 case '/update/networks':
-                case '/get':
+                case '/info':
                 case '/getAll':
                     if (level > 1) {
                         next();
@@ -50,12 +50,10 @@ class RoleController {
                 let role_name = req.body.role_name;
                 if (role_name == null || role_name == '')
                     throw new Error('role_name 不能为空');
-                if (role_name.length < 5)
-                    throw new Error('role_name 不能小于4位');
+                if (role_name.length < 2)
+                    throw new Error('role_name 不能小于2位');
                 
                 let networks = req.body.networks;
-                if (networks == null || networks == '')
-                    throw new Error('networks 不能为空');
                 if (!Array.isArray(networks))
                     throw new Error('networks 必须是数组');
                 for (let networkID of networks) {
@@ -119,8 +117,8 @@ class RoleController {
                 let role_name = req.body.role_name;
                 if (role_name == null || role_name == '')
                     throw new Error('role_name 不能为空');
-                if (role_name.length < 5)
-                    throw new Error('role_name 不能小于4位');
+                if (role_name.length < 2)
+                    throw new Error('role_name 不能小于2位');
 
                 let code = await this.roleDAO.changeRolenameByUID(uid, role_name);
                 res.send({
@@ -144,8 +142,6 @@ class RoleController {
                     throw new Error('uid 不能为空');
 
                 let networks = req.body.networks;
-                if (networks == null || networks == '')
-                    throw new Error('networks 不能为空');
                 if (!Array.isArray(networks))
                     throw new Error('networks 必须是数组');
                 for (let networkID of networks) {
@@ -167,7 +163,7 @@ class RoleController {
         /**
          * 查询角色接口 @Admin
          */
-        router.post('/get', async (req, res) => {
+        router.post('/info', async (req, res) => {
             try {
                 let uid = req.body.uid;
                 if (uid == null || uid == '')
