@@ -63,10 +63,7 @@ class Manager {
 			return;
 		this.client.write('status 2\n');
 		await new Promise(resolve => setTimeout(resolve, 100));
-		return {
-			clientList: this.latestClientList,
-			timestamp: this.latestClientListTime
-		};
+		return this.latestClientList;
 	}
 	//根据ID断开某个客户端
 	killClientByID(id) {
