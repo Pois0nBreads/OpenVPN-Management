@@ -127,12 +127,19 @@ class OpenVPNCore {
 		if (this.isRun)
 			return;
 		this.isRun = true;
-		this.process = spawn('openvpn', this.config.getStartParams(), {
+		// this.process = spawn('openvpn', this.config.getStartParams(), {
+		// 	env: process.env,
+		// 	PATH: process.env.PATH,
+		// 	shell:true
+		// });
+		this.process = spawn('openvpn', ['--config', 'stdin'], {
 			env: process.env,
 			PATH: process.env.PATH,
 			shell:true
 		});
-		
+		this.process.stdin.write(this.config.getStartFile());
+		this.process.stdin.end(); // 结束输入
+
 		let _this = this;
 		let manager = this.manager;
 		global.onExitTask.push(() => _this.stopVPNonError());
