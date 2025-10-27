@@ -3,10 +3,7 @@
 **/
 const express = require('express');
 const os = require('os');
-const { exec } = require('child_process');
-const util = require('util');
 const SystemInformation = require('systeminformation');
-const execPromise = util.promisify(exec);
 
 //时间戳变 xxd xxh xxm xxs
 function time2day(time){
@@ -94,8 +91,13 @@ class SystemController {
             }
         });
 
-        
+
         this.controller = router;
+    }
+
+    setConfigDAO(dao) {
+        this.configDAO = dao;
+        return this;
     }
 
     create() {
