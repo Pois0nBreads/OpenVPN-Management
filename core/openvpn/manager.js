@@ -58,14 +58,15 @@ class Manager {
 			return;
 	}
 	//获取当前在线客户端列表
-	getClientList(callback) {
+	async getClientList() {
 		if (!this.isRun)
 			return;
 		this.client.write('status 2\n');
-		let _this = this;
-		setTimeout(()=>{
-			callback(_this.latestClientList, _this.latestClientListTime);
-		}, 100);
+		await new Promise(resolve => setTimeout(resolve, 100));
+		return {
+			clientList: this.latestClientList,
+			timestamp: this.latestClientListTime
+		};
 	}
 	//根据ID断开某个客户端
 	killClientByID(id) {
