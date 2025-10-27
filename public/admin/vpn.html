@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html lang="zh-cn">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>VPN管理系统</title>
+    <!-- Bootstrap 3 CSS -->
+    <link rel="stylesheet" href="/static/css/bootstrap.min.css">
+    <style>
+        /* 仅添加必要的对齐样式和进度条调整 */
+        .navbar .container {
+            padding-left: 15px;
+            padding-right: 15px;
+        }
+
+        body {
+            padding-top: 50px;
+        }
+
+        .progress {
+            margin-bottom: 5px;
+            height: 10px;
+        }
+
+        .progress-info {
+            margin-bottom: 10px;
+        }
+    </style>
+</head>
+
+<body>
+    <!-- 深色导航栏 -->
+    <nav class="navbar navbar-inverse navbar-fixed-top">
+        <div class="container">
+            <div class="navbar-header">
+                <button type="button" class="navbar-toggle collapsed" data-toggle="collapse"
+                    data-target="#navbar-collapse">
+                    <span class="sr-only">切换导航</span>
+                    <span class="icon-bar"></span>
+                    <span class="icon-bar"></span>
+                    <span class="icon-bar"></span>
+                </button>
+                <a class="navbar-brand" href="/admin">VPN管理系统</a>
+            </div>
+
+            <div class="collapse navbar-collapse" id="navbar-collapse">
+                <ul class="nav navbar-nav">
+                    <li class="dropdown">
+                        <a href="#" class="dropdown-toggle" data-toggle="dropdown">状态 <span class="caret"></span></a>
+                        <ul class="dropdown-menu">
+                            <li><a href="/admin">概览</a></li>
+                            <li><a href="route.html">路由</a></li>
+                            <li><a href="iptables.html">防火墙</a></li>
+                            <li><a href="onlineuser.html">在线用户</a></li>
+                        </ul>
+                    </li>
+                    <li class="dropdown">
+                        <a href="#" class="dropdown-toggle" data-toggle="dropdown">VPN系统 <span class="caret"></span></a>
+                        <ul class="dropdown-menu">
+                            <li><a href="vpn.html">概览</a></li>
+                            <li><a href="vpnclient.html">VPN在线客户端</a></li>
+                            <li><a href="vpnconfig.html">VPN配置</a></li>
+                        </ul>
+                    </li>
+                    <li><a href="usermanager.html">用户管理</a></li>
+                    <li><a href="rolemanager.html">角色管理</a></li>
+                    <li><a href="networkmanager.html">网络组管理</a></li>
+                </ul>
+
+                <div class="navbar-right">
+                    <ul class="nav navbar-nav">
+                        <li><a href="?"><span class="glyphicon glyphicon-refresh"></span> 刷新</a></li>
+                        <li class="dropdown">
+                            <a href="#" class="dropdown-toggle" data-toggle="dropdown">我<span class="caret"></span></a>
+                            <ul class="dropdown-menu">
+                                <li><a href="userconfig.html">用户配置</a></li>
+                                <li><a href="javascript:void(0);" onclick="logout()">退出</a></li>
+                            </ul>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- 主内容区 - 浅色背景 -->
+    <div class="container">
+        <h2>VPN系统</h2>
+
+        <!-- 系统信息 -->
+        <div class="panel panel-default">
+            <div class="panel-heading">
+                <h3 class="panel-title">系统</h3>
+            </div>
+            <div class="panel-body">
+                <table class="table table-bordered ">
+                    <tr>
+                        <td width="33%">运行状态</td>
+                        <td>
+                            <span id="status">Loading...</span>
+                            <div class="pull-right">
+                                <button class="btn btn-success" id="start-btn">启动</button> 
+                                <button class="btn btn-danger" id="stop-btn">停止</button>
+                            </div>
+                        </td>
+                    </tr>
+                </table>
+            </div>
+        </div>
+
+        <!-- 新增的日志面板 -->
+        <div class="panel panel-default log-panel">
+            <div class="panel-heading clearfix">
+                <h3 class="panel-title pull-left">系统日志</h3>
+                <div class="btn-group pull-right">
+                    <label class="checkbox-inline" style="margin-left: 10px;">
+                        <input type="checkbox" id="pause-log-checkbox"> 暂停更新
+                        <button class="btn btn-xs btn-default" id="reflush-log-btn">刷新</button>
+                    </label>
+                </div>
+            </div>
+            <div class="panel-body" style="height: 100%;">
+                <textarea id="logArea" style="resize: none;" rows="20" class="form-control" readonly>Loading...</textarea>
+            </div>
+        </div>
+
+    </div>
+
+
+
+    <!-- 页脚 -->
+    <footer class="navbar navbar-default">
+        <div class="container">
+            <p class="navbar-text">
+                <a href="https://github.com/twbs/bootstrap">Powered by Bootstrap 3.4.1 </a> / VPN-Management 0.1
+            </p>
+        </div>
+    </footer>
+
+    <!-- 引入本地jQuery和Bootstrap JS -->
+    <script src="/static/js/jquery.min.js"></script>
+    <script src="/static/js/bootstrap.min.js"></script>
+    <script src="/static/js/public.js"></script>
+
+    <script>
+        function init() {
+            getVPNstatus();
+            getVPNlog();
+        }
+
+        $('#start-btn').prop("disabled", true);
+        $('#stop-btn').prop("disabled", true);
+
+        $('#reflush-log-btn').click(()=>{
+            getVPNlog();
+        });
+        $('#start-btn').click(()=>{
+            $('#start-btn').prop("disabled", true);
+            $.ajax({
+                url: "/api/vpn/start",
+                method: "POST",
+                timeout: 10000,
+                headers: { "authorization": localStorage.getItem('authToken') }
+                ,
+            }).done(checkResCode(res => {
+                init();
+            }));
+        });
+        $('#stop-btn').click(()=>{
+            $('#stop-btn').prop("disabled", true);
+            $.ajax({
+                url: "/api/vpn/stop",
+                method: "POST",
+                timeout: 10000,
+                headers: { "authorization": localStorage.getItem('authToken') }
+                ,
+            }).done(checkResCode(res => {
+                init();
+            }));
+        });
+
+        function getVPNstatus() {
+            $.ajax({
+                url: "/api/vpn/status",
+                method: "POST",
+                timeout: 10000,
+                headers: { "authorization": localStorage.getItem('authToken') }
+                ,
+            }).done(checkResCode(res => {
+                $('#status').text(res.status ? '运行中' : '已停止');
+                $('#start-btn').prop("disabled", res.status);
+                $('#stop-btn').prop("disabled", !res.status);
+            }));
+        }
+
+        function getVPNlog() {
+            if ($('#pause-log-checkbox').is(':checked'))
+                return;
+            $.ajax({
+                url: "/api/vpn/getLog",
+                method: "POST",
+                timeout: 10000,
+                headers: { "authorization": localStorage.getItem('authToken') }
+            }).done(checkResCode(res => {
+                $('#logArea').text(res.data);
+            }));
+        }
+
+        setInterval(init, 10000);
+        init();
+    </script>
+</body>
+
+</html>
