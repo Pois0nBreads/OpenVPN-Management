@@ -183,7 +183,7 @@ class NetworkDAO {
             }
             let cidrs = [];
             for (let network of networks)
-                cidrs.push(new Network(network).toString());
+                cidrs.push(new Netmask(network).toString());
             const networkstr = cidrs.join(',');
             const sql = `UPDATE ${NETWORK_TABLE_NAME} SET networks = ? WHERE uid = ?`;
             const result = await this.pool.query(sql, [networkstr, uid]);
