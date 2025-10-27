@@ -1,6 +1,7 @@
 module.exports = {
     httpServer: {
-        port: 8080
+        port: 8080,
+        ex_ip: "192.168.63.221"
     },
     dataBase: {
         host: "localhost",
