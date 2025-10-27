@@ -56,7 +56,7 @@ function checkResCode(next) {
             return;
         }
         if (res.code != 0) {
-            console.log(res);
+            alert(res.msg);
             return;
         }
         next(res);

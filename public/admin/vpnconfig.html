@@ -1,0 +1,216 @@
+<!DOCTYPE html>
+<html lang="zh-cn">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>VPN管理系统</title>
+    <!-- Bootstrap 3 CSS -->
+    <link rel="stylesheet" href="/static/css/bootstrap.min.css">
+    <style>
+        /* 仅添加必要的对齐样式和进度条调整 */
+        .navbar .container {
+            padding-left: 15px;
+            padding-right: 15px;
+        }
+
+        body {
+            padding-top: 70px;
+        }
+
+        .progress {
+            margin-bottom: 5px;
+            height: 10px;
+        }
+
+        .progress-info {
+            margin-bottom: 10px;
+        }
+    </style>
+</head>
+
+<body>
+    <!-- 深色导航栏 -->
+    <nav class="navbar navbar-inverse navbar-fixed-top">
+        <div class="container">
+            <div class="navbar-header">
+                <button type="button" class="navbar-toggle collapsed" data-toggle="collapse"
+                    data-target="#navbar-collapse">
+                    <span class="sr-only">切换导航</span>
+                    <span class="icon-bar"></span>
+                    <span class="icon-bar"></span>
+                    <span class="icon-bar"></span>
+                </button>
+                <a class="navbar-brand" href="/admin">VPN管理系统</a>
+            </div>
+
+            <div class="collapse navbar-collapse" id="navbar-collapse">
+                <ul class="nav navbar-nav">
+                    <li class="dropdown">
+                        <a href="#" class="dropdown-toggle" data-toggle="dropdown">状态 <span class="caret"></span></a>
+                        <ul class="dropdown-menu">
+                            <li><a href="/admin">概览</a></li>
+                            <li><a href="route.html">路由</a></li>
+                            <li><a href="iptables.html">防火墙</a></li>
+                            <li><a href="onlineuser.html">在线用户</a></li>
+                        </ul>
+                    </li>
+                    <li class="dropdown">
+                        <a href="#" class="dropdown-toggle" data-toggle="dropdown">VPN系统 <span class="caret"></span></a>
+                        <ul class="dropdown-menu">
+                            <li><a href="vpn.html">概览</a></li>
+                            <li><a href="vpnclient.html">VPN在线客户端</a></li>
+                            <li><a href="vpnconfig.html">VPN配置</a></li>
+                        </ul>
+                    </li>
+                    <li><a href="usermanager.html">用户管理</a></li>
+                    <li><a href="rolemanager.html">角色管理</a></li>
+                    <li><a href="networkmanager.html">网络组管理</a></li>
+                </ul>
+
+                <div class="navbar-right">
+                    <ul class="nav navbar-nav">
+                        <li><a href="?"><span class="glyphicon glyphicon-refresh"></span> 刷新</a></li>
+                        <li class="dropdown">
+                            <a href="#" class="dropdown-toggle" data-toggle="dropdown">我<span class="caret"></span></a>
+                            <ul class="dropdown-menu">
+                                <li><a href="userconfig.html">用户配置</a></li>
+                                <li><a href="javascript:void(0);" onclick="logout()">退出</a></li>
+                            </ul>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- 主内容区 - 浅色背景 -->
+    <div class="container">
+        
+        <div class="panel panel-default">
+            <div class="panel-heading">
+                <h3 class="panel-title ">VPN 相关配置 (需要重启VPN服务生效)</h3>
+            </div>
+            <div class="panel-body">
+                <div class="form-group">
+                    <label>VPN虚拟网段</label>
+                    <textarea id="serverNet" style="resize: none;" rows="1" class="form-control"></textarea>
+                </div>
+                <div class="form-group">
+                    <label>VPN 服务端口</label>
+                    <textarea id="serverPort" style="resize: none;" rows="1" class="form-control"></textarea>
+                </div>
+                <div class="form-group">
+                    <label >CA证书</label>
+                    <textarea id="ca" style="resize: none;" rows="10" class="form-control"></textarea>
+                </div>
+                <div class="form-group">
+                    <label >CERT证书</label>
+                    <textarea id="cert" style="resize: none;" rows="10" class="form-control"></textarea>
+                </div>
+                <div class="form-group">
+                    <label >KEY私钥</label>
+                    <textarea id="key" style="resize: none;" rows="10" class="form-control"></textarea>
+                </div>
+                <div class="form-group">
+                    <label for="pass">DH文件</label>
+                    <textarea id="dh" style="resize: none;" rows="10" class="form-control"></textarea>
+                </div>
+                <hr>
+                <button class="btn btn-success" onclick="setBtn()">提交</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 失败弹窗 -->
+    <div class="modal fade" id="setModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+                    <h4 class="modal-title">提交设置</h4>
+                </div>
+                <div class="modal-body">
+                    <p>是否提交设置？</p>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-success" onclick="setConfig()" data-dismiss="modal">确认</button>
+                    <button type="button" class="btn btn-default" data-dismiss="modal">关闭</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 页脚 -->
+    <footer class="navbar navbar-default">
+        <div class="container">
+            <p class="navbar-text">
+                <a href="https://github.com/twbs/bootstrap">Powered by Bootstrap 3.4.1 </a> / VPN-Management 0.1
+            </p>
+        </div>
+    </footer>
+
+    <!-- 引入本地jQuery和Bootstrap JS -->
+    <script src="/static/js/jquery.min.js"></script>
+    <script src="/static/js/bootstrap.min.js"></script>
+    <script src="/static/js/public.js"></script>
+
+    <script>
+        let ca = $('#ca');
+        let cert = $('#cert');
+        let key = $('#key');
+        let dh = $('#dh');
+        let serverNet = $('#serverNet');
+        let serverPort = $('#serverPort');
+
+        function init() {
+            getConfig();
+        }
+
+        function setConfig() {
+            let data = {
+                ca: ca.val(),
+                cert: cert.val(),
+                key: key.val(),
+                dh: dh.val(),
+                server_net: serverNet.val(),
+                server_port: serverPort.val()
+            }
+            $.ajax({
+                url: "/api/vpn/setConfig",
+                method: "POST",
+                timeout: 10000,
+                contentType: 'application/json',
+                data: JSON.stringify(data),
+                headers: { "authorization": localStorage.getItem('authToken') }
+            }).done(checkResCode(res => {
+                window.location.href = '?';
+            }));
+        }
+
+        function getConfig() {
+            $.ajax({
+                url: "/api/vpn/getConfig",
+                method: "POST",
+                timeout: 10000,
+                headers: { "authorization": localStorage.getItem('authToken') }
+                ,
+            }).done(checkResCode(res => {
+                ca.text(res.data.ca);
+                cert.text(res.data.cert);
+                key.text(res.data.key);
+                dh.text(res.data.dh);
+                serverNet.text(res.data.serverNet);
+                serverPort.text(res.data.serverPort);
+            }));
+        }
+
+        function setBtn() {
+            $('#setModal').modal('show');
+        }
+
+        init();
+    </script>
+</body>
+
+</html>
