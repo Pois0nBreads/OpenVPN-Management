@@ -146,7 +146,7 @@ class VPNController {
          */
         router.post('/getClients', async (req, res) => {
             try {
-                let data = this.vpn.manager.getClientList();
+                let data = await this.vpn.manager.getClientList();
                 
                 res.send({
                     code: 0,
