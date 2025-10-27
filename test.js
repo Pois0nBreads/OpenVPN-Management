@@ -1,5 +1,7 @@
 #!/usr/bin/env node
 //执行环境代码
+const Netmask = require('netmask').Netmask;
+
 require('./env.js');
 const config = require('./config.js');
 //导入openvpn包
@@ -15,10 +17,12 @@ const UserController = require('./httpserver/userController.js');
 const RoleController = require('./httpserver/roleController.js');
 const NetworkController = require('./httpserver/networkController.js');
 const SystemController = require('./httpserver/systemController.js');
+const VPNController = require('./httpserver/vpnController.js');
 //导入DAO包
 const UserDAO = require('./dao/userDAO.js');
 const RoleDAO = require('./dao/roleDAO.js');
 const NetworkDAO = require('./dao/networkDAO.js');
+const ConfigDAO = require('./dao/configDAO.js');
 
 
 (async function () {
@@ -26,6 +30,7 @@ const NetworkDAO = require('./dao/networkDAO.js');
 	let networkDAO = new NetworkDAO(config.dataBase);
 	let userDAO = new UserDAO(config.dataBase);
 	let roleDAO = new RoleDAO(config.dataBase);
+	let configDAO = new ConfigDAO(config.dataBase);
 	await userDAO.initAdministrator();
 
 	//配置IPtablesManager
@@ -66,9 +71,20 @@ const NetworkDAO = require('./dao/networkDAO.js');
 	};
 
 	//配置OpenVPN
-	let mOpenVPNConfig = new OpenVPNConfig({ http_server_port: config.httpServer.port });
-	let mOpenVPNCore = new OpenVPNCore(mOpenVPNConfig);
-	let mOpenVPNManager = mOpenVPNCore.manager; //获取VPN Management
+	let vpnConfig = await configDAO.getAllConfig();
+	let serverNet = new Netmask(vpnConfig.serverNet);
+	let mOpenVPNCore = new OpenVPNCore().setConfig(new OpenVPNConfig({
+		ca: vpnConfig.ca,
+		cert: vpnConfig.cert,
+		key: vpnConfig.key,
+		dh: vpnConfig.dh,
+		port: vpnConfig.serverPort,
+		server_net: serverNet.base,
+		server_mask: serverNet.mask,
+		http_server_port: config.httpServer.port,
+		ex_ip: config.httpServer.ex_ip
+	}));
+
 	//配置验证
 	mOpenVPNCore.author = async (user, pass) => {
 		console.log(`user: ${user}, pass: ${pass}`);
@@ -109,6 +125,8 @@ const NetworkDAO = require('./dao/networkDAO.js');
 			return "";
 		}
 	};
+	//启动前刷新链表
+	mIptablesManager.reflushVPNChain();
 	mOpenVPNCore.startVPN();
 
 	//配置Http服务器
@@ -129,6 +147,12 @@ const NetworkDAO = require('./dao/networkDAO.js');
 		.setNetworkDAO(networkDAO)
 		.create();
 	let systemController = new SystemController(tokenManager)
+		.setConfigDAO(configDAO)
+		.create();
+	let vpnController = new VPNController(tokenManager)
+		.setIptableManager(mIptablesManager)
+		.setVPNCore(mOpenVPNCore)
+		.setConfigDAO(configDAO)
 		.create();
 
 	let server = new HttpServer(config.httpServer.port)
@@ -136,17 +160,17 @@ const NetworkDAO = require('./dao/networkDAO.js');
 		.configureServer('role', roleController)
 		.configureServer('network', networkController)
 		.configureServer('system', systemController)
+		.configureServer('vpn', vpnController)
 		.setTokenManager(tokenManager)
 		.startServer();
 
 	// setInterval(() => {
-	// 	mOpenVPNCore.manager.getClientList(data => {
-	// 		for (let client of data) {
-	// 			console.log(`client cn: ${client.commonName} id: ${client.clientID} - ${client.virtualAddress}`);
-	// 			if (client.clientID == 0)
-	// 				mOpenVPNCore.manager.killClientByID(client.clientID);
-	// 		}
-	// 	});
+	// 	let data = mOpenVPNCore.manager.getClientList();
+	// 	for (let client of data) {
+	// 		console.log(`client cn: ${client.commonName} id: ${client.clientID} - ${client.virtualAddress}`);
+	// 		if (client.clientID == 0)
+	// 			mOpenVPNCore.manager.killClientByID(client.clientID);
+	// 	}
 	// }, 5000);
 
 })();

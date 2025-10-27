@@ -1,6 +1,13 @@
 #!/usr/bin/env node
+
 const si = require('systeminformation');
 
-si.mem()
-  .then(data => console.log(data))
-  .catch(error => console.error(error));
+(async ()=>{
+
+    
+    
+    console.log(await si.mem());
+    console.log(await si.mem());
+    console.log(await si.mem());
+    
+})();
