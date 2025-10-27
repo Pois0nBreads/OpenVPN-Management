@@ -21,11 +21,13 @@ class VPNController {
             switch (req.path) {
                 //用户接口
                 case '/getMyClients':
+                case '/getClientConfig':
                 case '/killMyClient':
                     if (level > 0) {
                         next();
                         break;
                     }
+                    res.type('application/json');
                     res.send({ code: 401, msg: "权限不足" });
                     break;
                 //管理员接口
@@ -262,6 +264,22 @@ class VPNController {
                     code: 0,
                     msg: '踢出VPN当前连接客户端成功'
                 });
+            } catch (e) {
+                res.send({
+                    code: -1,
+                    msg: '踢出VPN当前连接客户端失败' + e
+                });
+            }
+        });
+        /**
+         * 踢出VPN当前用户连接客户端
+         */
+        router.get('/getClientConfig', async (req, res) => {
+            try {
+                let data = this.vpn.config.getClientConfig();
+                res.type('text/plain'); // 设置MIME类型为纯文本
+                res.attachment('config.ovpn')
+                res.send(data);
             } catch (e) {
                 res.send({
                     code: -1,

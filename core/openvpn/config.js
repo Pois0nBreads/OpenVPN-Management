@@ -103,6 +103,7 @@ class OpenVPNConfig {
 		this.chiper			= "AES-256-CBC";		//VPN加密协议
 		this.http_server_ip	= "127.0.0.1";			//VPN加密协议
 		this.http_server_port = "8080";				//VPN加密协议
+		this.ex_ip 			= "127.0.0.1";
 		
 		if (typeof(options) == 'object')
 			Object.assign(this, options);
@@ -208,6 +209,27 @@ ${this.key}
 ${this.dh}
 </dh>`;
 	}
-	
+	//生成客户端配置文件
+	getClientConfig() {
+		return `
+client
+dev-type tun
+dev tunx
+proto ${this.proto}
+tun-mtu 1400
+cipher ${this.chiper}
+remote ${this.ex_ip} ${this.port}
+resolv-retry infinite
+nobind
+persist-key
+persist-tun
+verb 3
+auth-user-pass
+script-security 2
+connect-retry-max 3
+<ca>
+${this.ca}
+</ca>`;
+	}
 }
 module.exports = OpenVPNConfig;
