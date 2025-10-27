@@ -16,11 +16,11 @@ const ROUTE_SOCKET_PATH = path.join('/tmp', 'openvpn.route.sock');
 class OpenVPNCore {
 	
 	//初始化OpenVPN核心
-	constructor(config) {
+	constructor() {
 		this.run_path = global.run_path;
-		this.config = config;
+		this.config = null;
 		this.author = (user, pass) => '1';
-		this.clientConfigGetter = (user) => `push "route ${this.config.server_net} ${this.config.server_mask}"\n`;
+		this.clientConfigGetter = (user) => ``;
 		this.process = null;
 		this.isRun = false;
 		this.manager = new Manager();
@@ -118,6 +118,15 @@ class OpenVPNCore {
 	statusVPN() {
 		return this.isRun;
 	}
+
+	
+	/**
+	 * 查询OpenVPN线程运行日志
+	 * @returns String
+	 */
+	getLog() {
+		return this.runLog;
+	}
 	
 	/**
 	 * 启动OpenVPN线程
@@ -127,6 +136,7 @@ class OpenVPNCore {
 		if (this.isRun)
 			return;
 		this.isRun = true;
+		this.runLog = "";
 		// this.process = spawn('openvpn', this.config.getStartParams(), {
 		// 	env: process.env,
 		// 	PATH: process.env.PATH,
@@ -146,6 +156,7 @@ class OpenVPNCore {
 
 		this.process.stdout.on('data', (data) => {
 			data = data.toString();
+			this.runLog += data;
 			console.log(data);
 			if (data.match('Initialization Sequence Completed')) {
 				console.log(`守护进程已启动 PID: ${_this.process.pid}`);
@@ -192,6 +203,11 @@ class OpenVPNCore {
 		process.kill(this.process.pid);
 		console.log(`已终止进程组: ${this.process.pid}`);
 		this.isRun = false;
+	}
+
+	setConfig(config) {
+		this.config = config;
+		return this;
 	}
 }
 
