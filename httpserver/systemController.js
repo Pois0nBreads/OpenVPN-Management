@@ -8,15 +8,14 @@ const util = require('util');
 const SystemInformation = require('systeminformation');
 const execPromise = util.promisify(exec);
 
-//获取运行时间
-function getUptime(){
-    let uptime = parseInt(os.uptime());
-    let upS = uptime % 60;
-    uptime = (uptime - upS) / 60;
-    let upM = uptime % 60;
-    uptime = (uptime - upM) / 60;
-    let upH = uptime % 24;
-    let upD = (uptime - upH) / 24;
+//时间戳变 xxd xxh xxm xxs
+function time2day(time){
+    let upS = time % 60;
+    time = (time - upS) / 60;
+    let upM = time % 60;
+    time = (time - upM) / 60;
+    let upH = time % 24;
+    let upD = (time - upH) / 24;
     return `${upD}d ${upH}h ${upM}m ${upS}s`;
 }
 
@@ -52,7 +51,7 @@ class SystemController {
                     target: `${osInfo.distro} ${osInfo.release} ${osInfo.arch}`,
                     kernel: osInfo.kernel,
                     localtime: new Date().toString(),
-                    uptime: getUptime(),
+                    uptime: time2day(parseInt(os.uptime())),
                     loadavg: os.loadavg().join(', ')
                 }
                 res.send({
@@ -94,6 +93,8 @@ class SystemController {
                 });
             }
         });
+
+        
         this.controller = router;
     }
 
