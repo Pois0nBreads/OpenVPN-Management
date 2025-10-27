@@ -4,7 +4,9 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "db:init": "node -e \"const DatabaseInitializer = require('./database/init-db'); const config = require('./config'); new DatabaseInitializer(config.dataBase).initialize().then(() => console.log('Database initialized successfully')).catch(err => { console.error('Database initialization failed:', err); process.exit(1); })\"",
+    "db:seed": "node -e \"const DatabaseInitializer = require('./database/init-db'); const config = require('./config'); new DatabaseInitializer(config.dataBase).seedData().then(() => console.log('Seed data inserted successfully')).catch(err => { console.error('Seed data insertion failed:', err); process.exit(1); })\""
   },
   "author": "",
   "license": "ISC",
