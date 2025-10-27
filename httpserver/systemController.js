@@ -90,6 +90,67 @@ class SystemController {
                 });
             }
         });
+        /**
+         * 查询磁盘信息
+         */
+        router.post('/diskInfo', async (req, res) => {
+            try {
+                let diskData = await SystemInformation.fsSize();
+                const toMiB = (b) => (b / 1024 / 1024).toFixed(2);
+
+                for (let disk of diskData) {
+                    disk.size = toMiB(disk.size)
+                    disk.used = toMiB(disk.used)
+                    disk.available = toMiB(disk.available)
+                }
+                res.send({
+                    code: 0,
+                    msg: '查询磁盘信息成功',
+                    data: diskData
+                });
+            } catch (e) {
+                res.send({
+                    code: -1,
+                    msg: '查询磁盘信息失败' + e
+                });
+            }
+        });
+        /**
+         * 查询CPU负载
+         */
+        router.post('/cpuInfo', async (req, res) => {
+            try {
+                let cpuData = await SystemInformation.currentLoad();
+                res.send({
+                    code: 0,
+                    msg: '查询CPU负载成功',
+                    data: cpuData
+                });
+            } catch (e) {
+                res.send({
+                    code: -1,
+                    msg: '查询CPU负载失败' + e
+                });
+            }
+        });
+        /**
+         * 查询网络接口
+         */
+        router.post('/netInfo', async (req, res) => {
+            try {
+                let intfaceData = await SystemInformation.networkInterfaces();
+                res.send({
+                    code: 0,
+                    msg: '查询网络接口成功',
+                    data: intfaceData
+                });
+            } catch (e) {
+                res.send({
+                    code: -1,
+                    msg: '查询网络接口失败' + e
+                });
+            }
+        });
 
 
         this.controller = router;
