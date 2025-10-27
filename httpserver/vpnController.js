@@ -142,46 +142,6 @@ class VPNController {
             }
         });
         /**
-         * 查询VPN当前连接客户端
-         */
-        router.post('/getClients', async (req, res) => {
-            try {
-                let data = await this.vpn.manager.getClientList();
-                
-                res.send({
-                    code: 0,
-                    msg: '查询VPN当前连接客户端成功',
-                    data: data
-                });
-            } catch (e) {
-                res.send({
-                    code: -1,
-                    msg: '查询VPN当前连接客户端失败' + e
-                });
-            }
-        });
-        /**
-         * 踢出VPN当前连接客户端
-         */
-        router.post('/killClient', async (req, res) => {
-            try {
-                let id = req.body.id;
-                if (id == null || id == '')
-                    throw new Error('id 不能为空');
-                this.vpn.manager.killClientByID(id);
-                
-                res.send({
-                    code: 0,
-                    msg: '踢出VPN当前连接客户端成功'
-                });
-            } catch (e) {
-                res.send({
-                    code: -1,
-                    msg: '踢出VPN当前连接客户端失败' + e
-                });
-            }
-        });
-        /**
          * 获取VPN配置
          */
         router.post('/getConfig', async (req, res) => {
@@ -225,30 +185,75 @@ class VPNController {
                 });
             }
         });
-        
-
-        //用户接口
         /**
-         * 查询VPN当前用户连接客户端
+         * 查询全部已连接VPN客户端
          */
-        router.post('/getMyClients', async (req, res) => {
+        router.post('/getClients', async (req, res) => {
             try {
-                let data = this.vpn.manager.getClientList();
+                let data = await this.vpn.manager.getClientList();
                 
                 res.send({
                     code: 0,
-                    msg: '查询VPN当前连接客户端成功',
+                    msg: '查询全部已连接VPN客户端成功',
                     data: data
                 });
             } catch (e) {
                 res.send({
                     code: -1,
-                    msg: '查询VPN当前连接客户端失败' + e
+                    msg: '查询全部已连接VPN客户端失败' + e
                 });
             }
         });
         /**
-         * 踢出VPN当前用户连接客户端
+         * 下线已连接VPN客户端
+         */
+        router.post('/killClient', async (req, res) => {
+            try {
+                let id = req.body.id;
+                if (id == null || id == '')
+                    throw new Error('id 不能为空');
+                this.vpn.manager.killClientByID(id);
+                
+                res.send({
+                    code: 0,
+                    msg: '下线已连接VPN客户端'
+                });
+            } catch (e) {
+                res.send({
+                    code: -1,
+                    msg: '下线已连接VPN客户端' + e
+                });
+            }
+        });
+        
+
+        //用户接口
+        /**
+         * 查询当前Web用户已连接VPN客户端
+         */
+        router.post('/getMyClients', async (req, res) => {
+            try {
+                let user = req.__access_user;
+                let data = await this.vpn.manager.getClientList();
+                let curruteUserClient = [];
+                for (let client of data) {
+                    if (client.commonName == user)
+                        curruteUserClient.push(client);
+                }
+                res.send({
+                    code: 0,
+                    msg: '查询当前Web用户已连接VPN客户端成功',
+                    data: curruteUserClient
+                });
+            } catch (e) {
+                res.send({
+                    code: -1,
+                    msg: '查询当前Web用户已连接VPN客户端失败' + e
+                });
+            }
+        });
+        /**
+         * 下线当前Web用户已连接VPN客户端
          */
         router.post('/killMyClient', async (req, res) => {
             try {
@@ -256,25 +261,35 @@ class VPNController {
                 if (id == null || id == '')
                     throw new Error('id 不能为空');
 
-                let data = this.vpn.manager.getClientList();
-
-                this.vpn.manager.killClientByID(id);
+                let user = req.__access_user;
+                let data = await this.vpn.manager.getClientList();
+                let killed = false;
+                for (let client of data) 
+                    if (client.clientID == id) {
+                        if (client.commonName == user) {
+                            this.vpn.manager.killClientByID(id);
+                            killed = true;
+                        }
+                        break;
+                    }
+                if (!killed)
+                    throw new Error('当前用户没有权限踢出非自己的VPN客户端');
                 
                 res.send({
                     code: 0,
-                    msg: '踢出VPN当前连接客户端成功'
+                    msg: '下线当前Web用户已连接VPN客户端成功'
                 });
             } catch (e) {
                 res.send({
                     code: -1,
-                    msg: '踢出VPN当前连接客户端失败' + e
+                    msg: '下线当前Web用户已连接VPN客户端失败' + e
                 });
             }
         });
         /**
-         * 踢出VPN当前用户连接客户端
+         * 获取VPN客户端配置文件
          */
-        router.get('/getClientConfig', async (req, res) => {
+        router.post('/getClientConfig', async (req, res) => {
             try {
                 let data = this.vpn.config.getClientConfig();
                 res.type('text/plain'); // 设置MIME类型为纯文本
@@ -283,7 +298,7 @@ class VPNController {
             } catch (e) {
                 res.send({
                     code: -1,
-                    msg: '踢出VPN当前连接客户端失败' + e
+                    msg: '获取VPN客户端配置文件' + e
                 });
             }
         });
