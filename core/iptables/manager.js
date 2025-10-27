@@ -90,7 +90,7 @@ class Manager {
 		contr.clearRuleByChainName(contr.forwardTable);
 		
 		//向OPENVPN_FORWARD添加OVPN链规则
-		rule = new RuleBean();
+		let rule = new RuleBean();
 		rule.target = 'DROP';
 		contr.addRuleByChainName(contr.forwardTable, rule, true);
 		
