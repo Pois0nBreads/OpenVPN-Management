@@ -219,7 +219,7 @@ class UserController {
                 if (username == null || username == '')
                     throw new Error('username 不能为空');
                 if (username.length < 5)
-                    throw new Error('username 不能小于8位');
+                    throw new Error('username 不能小于4位');
                 if (!isValidUserName(username))
                     throw new Error('username 只允许包含英文大小写和数字');
 
@@ -346,8 +346,6 @@ class UserController {
                     throw new Error('username 只允许包含英文大小写和数字');
 
                 let roles = req.body.roles;
-                if (roles == null || roles == '')
-                    throw new Error('roles 不能为空');
                 if (!Array.isArray(roles))
                     throw new Error('roles 必须是数组');
                 for (let roleID of roles) {
@@ -358,12 +356,12 @@ class UserController {
                 let code = await this.userDAO.changeRolesByName(username, roles);
                 res.send({
                     code: 0,
-                    msg: '修改用户昵称成功'
+                    msg: '修改用户规则成功'
                 });
             } catch (e) {
                 res.send({
                     code: -1,
-                    msg: '修改用户昵称失败' + e
+                    msg: '修改用户规则失败' + e
                 });
             }
         });
@@ -380,7 +378,7 @@ class UserController {
                 if (!isValidUserName(username))
                     throw new Error('username 只允许包含英文大小写和数字');
 
-                let userData = await this.userDAO.getUserByName(user);
+                let userData = await this.userDAO.getUserByName(username);
                 res.send({
                     code: 0,
                     msg: '查询用户成功',
