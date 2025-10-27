@@ -1,0 +1,263 @@
+<!DOCTYPE html>
+<html lang="zh-cn" data-darkmode="false">
+<head>
+	<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+	<title>VPN管理系统</title>
+	<meta name="viewport" content="initial-scale=1.0">
+	<link rel="stylesheet" href="/static/css/cascade.css">
+	<link rel="stylesheet" media="only screen and (max-device-width: 854px)" href="/static/css/mobile.css"
+		type="text/css">
+	<link rel="shortcut icon" href="/static/img/favicon.png">
+</head>
+
+<body class="lang_zh-cn Overview" data-page="admin-status-overview">
+
+	<header>
+		<a class="brand" href="http://192.168.252.253/">OpenWrt</a>
+		<ul class="nav" id="topmenu" >
+			<li class="dropdown"><a class="menu"
+					href="http://192.168.252.253/cgi-bin/luci/admin/status/overview#">状态</a>
+				<ul class="dropdown-menu">
+					<li><a href="http://192.168.252.253/cgi-bin/luci/admin/status/overview">概览</a></li>
+					<li><a href="http://192.168.252.253/cgi-bin/luci/admin/status/routes">路由</a></li>
+					<li><a href="http://192.168.252.253/cgi-bin/luci/admin/status/nftables">防火墙</a></li>
+					<li><a href="http://192.168.252.253/cgi-bin/luci/admin/status/logs">系统日志</a></li>
+					<li><a href="http://192.168.252.253/cgi-bin/luci/admin/status/processes">系统进程</a></li>
+					<li><a href="http://192.168.252.253/cgi-bin/luci/admin/status/realtime">实时信息</a></li>
+				</ul>
+			</li>
+			<li class="dropdown"><a class="menu"
+					href="http://192.168.252.253/cgi-bin/luci/admin/status/overview#">系统</a>
+				<ul class="dropdown-menu">
+					<li><a href="http://192.168.252.253/cgi-bin/luci/admin/system/system">系统</a></li>
+					<li><a href="http://192.168.252.253/cgi-bin/luci/admin/system/admin">管理权</a></li>
+					<li><a href="http://192.168.252.253/cgi-bin/luci/admin/system/opkg">软件包</a></li>
+					<li><a href="http://192.168.252.253/cgi-bin/luci/admin/system/startup">启动项</a></li>
+					<li><a href="http://192.168.252.253/cgi-bin/luci/admin/system/crontab">计划任务</a></li>
+					<li><a href="http://192.168.252.253/cgi-bin/luci/admin/system/flash">备份与升级</a></li>
+					<li><a href="http://192.168.252.253/cgi-bin/luci/admin/system/reboot">重启</a></li>
+				</ul>
+			</li>
+			<li class="dropdown"><a class="menu"
+					href="http://192.168.252.253/cgi-bin/luci/admin/status/overview#">服务</a>
+				<ul class="dropdown-menu">
+					<li><a href="http://192.168.252.253/cgi-bin/luci/admin/services/openclash">OpenClash</a></li>
+					<li><a href="http://192.168.252.253/cgi-bin/luci/admin/services/ttyd">终端</a></li>
+				</ul>
+			</li>
+			<li class="dropdown"><a class="menu"
+					href="http://192.168.252.253/cgi-bin/luci/admin/status/overview#">网络</a>
+				<ul class="dropdown-menu">
+					<li><a href="http://192.168.252.253/cgi-bin/luci/admin/network/network">接口</a></li>
+					<li><a href="http://192.168.252.253/cgi-bin/luci/admin/network/routes">路由</a></li>
+					<li><a href="http://192.168.252.253/cgi-bin/luci/admin/network/dhcp">DHCP/DNS</a></li>
+					<li><a href="http://192.168.252.253/cgi-bin/luci/admin/network/diagnostics">网络诊断</a></li>
+					<li><a href="http://192.168.252.253/cgi-bin/luci/admin/network/firewall">防火墙</a></li>
+				</ul>
+			</li>
+			<li><a href="http://192.168.252.253/cgi-bin/luci/admin/logout">退出</a></li>
+		</ul>
+		<div id="indicators" class="pull-right"><span data-indicator="poll-status" data-clickable="true"
+				data-style="active">刷新</span></div>
+	</header>
+
+	<div id="maincontent" class="container">
+		<div id="tabmenu" style="display:none"></div>
+		<h2 name="content">状态</h2>
+
+		<div id="view">
+			<div class="fade-in" >
+				<h3>系统</h3>
+				<div>
+					<table class="table">
+						<tr class="tr">
+							<td class="td left" width="33%">主机名</td>
+							<td class="td left">OpenWrt</td>
+						</tr>
+						<tr class="tr">
+							<td class="td left" width="33%">型号</td>
+							<td class="td left">VMware, Inc. VMware Virtual Platform</td>
+						</tr>
+						<tr class="tr">
+							<td class="td left" width="33%">架构</td>
+							<td class="td left">Intel(R) Core(TM) i5-4590T CPU @ 2.00GHz</td>
+						</tr>
+						<tr class="tr">
+							<td class="td left" width="33%">目标平台</td>
+							<td class="td left">x86/64</td>
+						</tr>
+						<tr class="tr">
+							<td class="td left" width="33%">固件版本</td>
+							<td class="td left">OpenWrt 22.03.5 r20134-5f15225c1e / LuCI openwrt-22.03 branch
+								git-23.119.80898-65ef406</td>
+						</tr>
+						<tr class="tr">
+							<td class="td left" width="33%">内核版本</td>
+							<td class="td left">5.10.176</td>
+						</tr>
+						<tr class="tr">
+							<td class="td left" width="33%">本地时间</td>
+							<td class="td left">2025-10-26 06:27:52</td>
+						</tr>
+						<tr class="tr">
+							<td class="td left" width="33%">运行时间</td>
+							<td class="td left">295d 14h 23m 21s</td>
+						</tr>
+						<tr class="tr">
+							<td class="td left" width="33%">平均负载</td>
+							<td class="td left">0.00, 0.00, 0.00</td>
+						</tr>
+					</table>
+				</div>
+			</div>
+			<div class="fade-in" >
+				<h3>内存</h3>
+				<div>
+					<table class="table">
+						<tr class="tr">
+							<td class="td left" width="33%">可用数</td>
+							<td class="td left">
+								<div class="cbi-progressbar" title="213.11 MiB / 986.90 MiB (21%)">
+									<div style="width:21.00%"></div>
+								</div>
+							</td>
+						</tr>
+						<tr class="tr">
+							<td class="td left" width="33%">已使用</td>
+							<td class="td left">
+								<div class="cbi-progressbar" title="769.28 MiB / 986.90 MiB (77%)">
+									<div style="width:77.00%"></div>
+								</div>
+							</td>
+						</tr>
+						<tr class="tr">
+							<td class="td left" width="33%">已缓冲</td>
+							<td class="td left">
+								<div class="cbi-progressbar" title="1.66 MiB / 986.90 MiB (0%)">
+									<div style="width:0.00%"></div>
+								</div>
+							</td>
+						</tr>
+						<tr class="tr">
+							<td class="td left" width="33%">已缓存</td>
+							<td class="td left">
+								<div class="cbi-progressbar" title="46.09 MiB / 986.90 MiB (4%)">
+									<div style="width:4.00%"></div>
+								</div>
+							</td>
+						</tr>
+					</table>
+				</div>
+			</div>
+			<div class="fade-in">
+				<h3>存储空间使用</h3>
+				<div>
+					<table class="table">
+						<tr class="tr">
+							<td class="td left" width="33%">磁盘空间</td>
+							<td class="td left">
+								<div class="cbi-progressbar" title="64.85 MiB / 102.33 MiB (63%)">
+									<div style="width:63.00%"></div>
+								</div>
+							</td>
+						</tr>
+						<tr class="tr">
+							<td class="td left" width="33%">临时空间</td>
+							<td class="td left">
+								<div class="cbi-progressbar" title="8.03 MiB / 493.45 MiB (1%)">
+									<div style="width:1.00%"></div>
+								</div>
+							</td>
+						</tr>
+					</table>
+				</div>
+			</div>
+			<div class="fade-in" >
+				<h3>网络</h3>
+				<div>
+					<div class="network-status-table">
+						<div class="ifacebox">
+							<div class="ifacebox-head center active"><strong>IPv4 上游</strong></div>
+							<div class="ifacebox-body left"><span><span class="nowrap"><strong>协议:
+										</strong>静态地址</span><br><span class="nowrap"><strong>地址:
+										</strong>192.168.252.253/24</span><br><span class="nowrap"><strong>网关:
+										</strong>192.168.252.254</span><br><span class="nowrap"><strong>DNS 1:
+										</strong>114.114.114.114</span><br><span class="nowrap"><strong>DNS 2:
+										</strong>223.5.5.5</span><br><span class="nowrap"><strong>已连接: </strong>295d 14h
+										23m 13s</span></span>
+								<div><span class="ifacebadge"><img src="./index_files/bridge.png" title=""><span><span
+												class="nowrap"><strong>设备: </strong>桥接: "br-lan"</span><br><span
+												class="nowrap"><strong>MAC 地址:
+												</strong>00:0C:29:F2:3A:9B</span></span></span></div>
+							</div>
+						</div>
+					</div>
+					<table class="table">
+						<tr class="tr">
+							<td class="td left" width="33%">活动连接</td>
+							<td class="td left">
+								<div class="cbi-progressbar" title="46 / 63488 (0%)">
+									<div style="width:0.00%"></div>
+								</div>
+							</td>
+						</tr>
+					</table>
+				</div>
+			</div>
+			<div class="fade-in" >
+				<div>
+					<h3>已分配的 DHCP 租约</h3>
+					<table class="table lases" data-idref="8da51d63">
+						<tr class="tr table-titles">
+							<th class="th">主机名</th>
+							<th class="th">IPv4 地址</th>
+							<th class="th">MAC 地址</th>
+							<th class="th">剩余租期</th>
+							<th class="th cbi-section-actions">静态租约</th>
+						</tr>
+						<tr class="tr placeholder">
+							<td class="td"><em>没有已分配的租约</em></td>
+						</tr>
+					</table>
+					<h3>已分配的 DHCPv6 租约</h3>
+					<table class="table leases6" data-idref="3c060944">
+						<tr class="tr table-titles">
+							<th class="th">主机</th>
+							<th class="th">IPv6 地址</th>
+							<th class="th">DUID</th>
+							<th class="th">剩余租期</th>
+							<th class="th cbi-section-actions">静态租约</th>
+						</tr>
+						<tr class="tr placeholder">
+							<td class="td"><em>没有已分配的租约</em></td>
+						</tr>
+					</table>
+				</div>
+			</div>
+			<div class="cbi-section" style="display:none">
+				<h3>DSL</h3>
+				<div></div>
+			</div>
+			<div class="cbi-section" style="display:none">
+				<h3>无线</h3>
+				<div></div>
+			</div>
+		</div>
+
+	</div>
+	<footer>
+		<span>
+			<a href="https://github.com/openwrt/luci">Powered by LuCI openwrt-22.03 branch
+				(git-23.119.80898-65ef406)</a> / OpenWrt 22.03.5 r20134-5f15225c1e
+		</span>
+		<ul class="breadcrumb pull-right" id="modemenu" style="display:none">
+			<li class="active"><a href="http://192.168.252.253/cgi-bin/luci/admin">管理权</a></li>
+		</ul>
+	</footer>
+	<div id="modal_overlay" tabindex="-1">
+		<div class="modal" role="dialog" aria-modal="true"></div>
+	</div>
+	<div class="cbi-tooltip"></div>
+</body>
+
+</html>

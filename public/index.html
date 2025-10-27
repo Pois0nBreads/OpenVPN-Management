@@ -1,1 +1,198 @@
-<h1>HelloWorld</h1>
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>VPN管理系统</title>
+    <!-- Bootstrap 3 CSS -->
+    <link rel="stylesheet" href="/static/css/bootstrap.min.css">
+    <style>
+        body {
+            background-color: rgba(0,0,0,0.7);
+        }
+        .login-container {
+            max-width: 400px;
+            margin: 0 auto;
+        }
+    </style>
+</head>
+<body>
+	<!-- 深色导航栏 -->
+	<nav class="navbar navbar-inverse navbar-static-top">
+        <div class="container">
+			<div class="navbar-header">
+				<button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#navbar-collapse">
+					<span class="sr-only">切换导航</span>
+					<span class="icon-bar"></span>
+					<span class="icon-bar"></span>
+					<span class="icon-bar"></span>
+				</button>
+				<a class="navbar-brand" href="#">VPN管理系统</a>
+			</div>
+		</div>
+	</nav>
+
+    <div class="container">
+        <div class="login-container">
+            <div class="panel panel-default">
+                <div class="panel-heading">
+                    <h3 class="panel-title text-center">需要授权</h3>
+                </div>
+                <div class="panel-body">
+                    <form id="login-form">
+                        <div class="form-group">
+                            <label for="user">用户名</label>
+                            <input type="text" class="form-control" id="user" name="user" 
+                                   autocomplete="username" value="Administrator" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="pass">密码</label>
+                            <input type="password" class="form-control" id="pass" name="pass" 
+                                   autocomplete="current-password" required>
+                        </div>
+                        <hr>
+                        <button type="submit" class="btn btn-success btn-block">登录</button>
+                    </form>
+                    <div id="error" class="alert alert-danger mt-3" style="display: none;">
+                        无效的用户名和/或密码！请重试。
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 加载中模态框 -->
+    <div class="modal fade" id="loadingModal" data-backdrop="static" data-keyboard="false" tabindex="-1">
+        <div class="modal-dialog modal-sm">
+            <div class="modal-content">
+                <div class="modal-body text-center">
+                    <div class="spinner" style="font-size: 24px; margin-bottom: 10px;">⏳</div>
+                    <h5>正在登录</h5>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 失败弹窗 -->
+    <div class="modal fade" id="errorModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+                    <h4 class="modal-title">登录失败</h4>
+                </div>
+                <div class="modal-body">
+                    <p id="error-message">登录失败，请检查用户名和密码。</p>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-default" data-dismiss="modal">关闭</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 引入 jQuery 和 Bootstrap 3 JS -->
+    <script src="/static/js/jquery.min.js"></script>
+    <script src="/static/js/bootstrap.min.js"></script>
+
+    <script>
+        $(document).ready(function() {
+            // 登录表单提交处理
+            $('#login-form').on('submit', function(event) {
+                event.preventDefault();
+                
+                // 隐藏之前的错误提示
+                $('#error').hide();
+                // 显示加载中模态框
+                $('#loadingModal').modal('show');
+                // 获取表单数据
+                const formData = {
+                    user: $('#user').val(),
+                    pass: $('#pass').val()
+                };
+                // 发送登录请求
+                $.ajax({
+                    url: '/api/user/login',
+                    method: 'POST',
+                    contentType: 'application/json',
+                    data: JSON.stringify(formData),
+                    timeout: 10000
+                })
+                .done(function(response) {
+                    console.log('登录响应:', response);
+                    // 隐藏加载中模态框
+                    $('#loadingModal').modal('hide');
+                    if (response.code === 0) {
+                        // 保存token到本地存储
+                        localStorage.setItem('authToken', response.token);
+                        next(response.level);
+                    } else {
+                        // 登录失败，显示错误信息
+                        $('#error').show();
+                        // 显示失败模态框
+                        $('#error-message').text(response.msg || '登录失败，请检查用户名和密码。');
+                        $('#errorModal').modal('show');
+                    }
+                })
+                .fail(function(xhr, status, error) {
+                    // 隐藏加载中模态框
+                    $('#loadingModal').modal('hide');
+                    // 显示错误信息
+                    $('#error').show();
+                    // 显示失败模态框
+                    let errorMsg = '网络错误，请稍后重试。';
+                    if (xhr.responseJSON && xhr.responseJSON.msg) {
+                        errorMsg = xhr.responseJSON.msg;
+                    } else if (status === 'timeout') {
+                        errorMsg = '请求超时，请检查网络连接。';
+                    }
+                    $('#error-message').text(errorMsg);
+                    $('#errorModal').modal('show');
+                    console.error('登录请求失败:', status, error);
+                });
+            });
+            
+            // 自动登录功能
+            function autoLogin() {
+                const savedToken = localStorage.getItem('authToken');
+                if (savedToken) {
+                    $('#loadingModal').modal('show');
+                    $.ajax({
+                        url: '/api/user/mylevel',
+                        method: 'POST',
+                        contentType: 'application/json',
+                        headers: { "Authorization": savedToken},
+                        timeout: 10000
+                    })
+                    .done(function(response) {
+                        $('#loadingModal').modal('hide');
+                        next(response.level);
+                    })
+                    .fail(function(xhr, status, error) {
+                        $('#loadingModal').modal('hide');
+                    });
+                }
+            }
+            
+            function next(code) {
+                switch (code) {
+                    case 1:
+                        console.log('普通用户');
+                        window.location.href = '/user/';
+                        break;
+                    case 2:
+                        console.log('管理员');
+                		window.location.href = '/admin/';
+                        break;
+                    default:
+                        console.log('无权限');
+                        break;
+                }
+            }
+
+            // 页面加载时尝试自动登录
+            autoLogin();
+        });
+    </script>
+</body>
+</html>
