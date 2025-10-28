@@ -50,6 +50,8 @@ class UserController {
                 case '/update/roles':
                 case '/info':
                 case '/getAll':
+                case '/getOnlinebUser':
+                case '/killOnlinebUser':
                     if (level > 1) {
                         next();
                         break;
@@ -406,6 +408,42 @@ class UserController {
                 res.send({
                     code: -1,
                     msg: '查询用户失败' + e
+                });
+            }
+        });
+        /**
+         * 查询Web在线用户接口 @Admin
+         */
+        router.post('/getOnlinebUser', async (req, res) => {
+            try {
+                let users = await this.tokenManager.queryAllToken();
+                res.send({
+                    code: 0,
+                    msg: '查询Web在线用户成功',
+                    data: users
+                });
+            } catch (e) {
+                res.send({
+                    code: -1,
+                    msg: '查询Web在线用户失败' + e
+                });
+            }
+        });
+        /**
+         * 踢出Web在线用户接口 @Admin
+         */
+        router.post('/killOnlinebUser', async (req, res) => {
+            try {
+                let token = req.body.token;
+                this.tokenManager.destoryToken(token);
+                res.send({
+                    code: 0,
+                    msg: '踢出Web在线用户成功'
+                });
+            } catch (e) {
+                res.send({
+                    code: -1,
+                    msg: '踢出Web在线用户失败' + e
                 });
             }
         });

@@ -78,5 +78,23 @@ class TokenManager {
         if (this.tokenMap[token])
             delete this.tokenMap[token];
     }
+
+    /**
+     * 查询全部Token 返回 [{token:.. , name:.. , expiredTime: ..}....]
+     */
+    queryAllToken() {
+        let result = []
+        for (let token in this.tokenMap) {
+            let item = {
+                token: token,
+                name: this.tokenMap[token].name,
+                expiredTime: this.tokenMap[token].expiredTime
+            }
+            result.push(item);
+        }
+        return result;
+    }
+
+
 }
 module.exports = TokenManager;
