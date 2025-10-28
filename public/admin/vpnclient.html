@@ -130,27 +130,35 @@
     <!-- 引入本地jQuery和Bootstrap JS -->
     <script src="/static/js/jquery.min.js"></script>
     <script src="/static/js/bootstrap.min.js"></script>
+
+    <!-- 引入本地模态框 -->
+    <script src="/static/js/modal.js"></script>
     <script src="/static/js/public.js"></script>
 
     <script>
-        let list = $('#clientList');
 
         function init() {
             getClientList();
         }
 
+        //下线一个VPN客户端
         function killClient(id) {
-            id = "" + id;
-            $.ajax({
-                url: "/api/vpn/killClient",
-                method: "POST",
-                timeout: 10000,
-                contentType: 'application/json',
-                data: JSON.stringify({id: id}),
-                headers: { "authorization": localStorage.getItem('authToken') }
-            }).done(checkResCode(res => {
-                getClientList();
-            }));
+            let _id = "" + id;
+            confirmModal.show(`是否对 ${_id} VPN客户端强制下线?`, () => {
+                loadingModal.show();
+                $.ajax({
+                    url: "/api/vpn/killClient",
+                    method: "POST",
+                    timeout: 10000,
+                    contentType: 'application/json',
+                    data: JSON.stringify({id: _id}),
+                    headers: { "authorization": localStorage.getItem('authToken') }
+                }).done(checkResCode(res => {
+                    successModal.show();
+                })).fail(handleXhrFail).always(() => {
+                    loadingModal.hide();
+                });
+            });
         }
 
         function getClientList() {
@@ -161,6 +169,7 @@
                 headers: { "authorization": localStorage.getItem('authToken') }
                 ,
             }).done(checkResCode(res => {
+                let list = $('#clientList');
                 list.empty();
                 for (let client of res.data) {
                     let row = $('<tr>');
@@ -174,7 +183,7 @@
                     row.append(`<td><button class="btn btn-danger" onclick="killClient(${client.clientID})">下线</button></td>`);
                     list.append(row);
                 }
-            }));
+            })).fail(handleXhrFail);
         }
 
         

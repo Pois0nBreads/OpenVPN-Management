@@ -127,8 +127,6 @@
 
     </div>
 
-
-
     <!-- 页脚 -->
     <footer class="navbar navbar-default">
         <div class="container">
@@ -141,6 +139,9 @@
     <!-- 引入本地jQuery和Bootstrap JS -->
     <script src="/static/js/jquery.min.js"></script>
     <script src="/static/js/bootstrap.min.js"></script>
+
+    <!-- 引入本地模态框 -->
+    <script src="/static/js/modal.js"></script>
     <script src="/static/js/public.js"></script>
 
     <script>
@@ -152,48 +153,61 @@
         $('#start-btn').prop("disabled", true);
         $('#stop-btn').prop("disabled", true);
 
-        $('#reflush-log-btn').click(()=>{
-            getVPNlog();
-        });
+        //刷新日志
+        $('#reflush-log-btn').click(()=> getVPNlog() );
+        
+        //启动VPN服务
         $('#start-btn').click(()=>{
+            loadingModal.show();
             $('#start-btn').prop("disabled", true);
             $.ajax({
                 url: "/api/vpn/start",
                 method: "POST",
                 timeout: 10000,
                 headers: { "authorization": localStorage.getItem('authToken') }
-                ,
             }).done(checkResCode(res => {
                 init();
-            }));
+                successModal.show();
+            })).fail(handleXhrFail).always(() => {
+                loadingModal.hide();
+            });
         });
+        
+        //停止VPN服务
         $('#stop-btn').click(()=>{
-            $('#stop-btn').prop("disabled", true);
-            $.ajax({
-                url: "/api/vpn/stop",
-                method: "POST",
-                timeout: 10000,
-                headers: { "authorization": localStorage.getItem('authToken') }
-                ,
-            }).done(checkResCode(res => {
-                init();
-            }));
+            
+            confirmModal.show(`你确定要停止服务? 这会断开全部客户端！`, () => {
+                loadingModal.show();
+                $('#stop-btn').prop("disabled", true);
+                $.ajax({
+                    url: "/api/vpn/stop",
+                    method: "POST",
+                    timeout: 10000,
+                    headers: { "authorization": localStorage.getItem('authToken') }
+                }).done(checkResCode(res => {
+                    init();
+                    successModal.show();
+                })).fail(handleXhrFail).always(() => {
+                    loadingModal.hide();
+                });
+            });
         });
 
+        //获取VPN状态
         function getVPNstatus() {
             $.ajax({
                 url: "/api/vpn/status",
                 method: "POST",
                 timeout: 10000,
                 headers: { "authorization": localStorage.getItem('authToken') }
-                ,
             }).done(checkResCode(res => {
                 $('#status').text(res.status ? '运行中' : '已停止');
                 $('#start-btn').prop("disabled", res.status);
                 $('#stop-btn').prop("disabled", !res.status);
-            }));
+            })).fail(handleXhrFail);
         }
 
+        //获取VPN日志
         function getVPNlog() {
             if ($('#pause-log-checkbox').is(':checked'))
                 return;
@@ -204,7 +218,7 @@
                 headers: { "authorization": localStorage.getItem('authToken') }
             }).done(checkResCode(res => {
                 $('#logArea').text(res.data);
-            }));
+            })).fail(handleXhrFail);
         }
 
         setInterval(init, 10000);

@@ -117,26 +117,7 @@
                     <textarea id="dh" style="resize: none;" rows="10" class="form-control"></textarea>
                 </div>
                 <hr>
-                <button class="btn btn-success" onclick="setBtn()">提交</button>
-            </div>
-        </div>
-    </div>
-
-    <!-- 失败弹窗 -->
-    <div class="modal fade" id="setModal" tabindex="-1">
-        <div class="modal-dialog">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
-                    <h4 class="modal-title">提交设置</h4>
-                </div>
-                <div class="modal-body">
-                    <p>是否提交设置？</p>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-success" onclick="setConfig()" data-dismiss="modal">确认</button>
-                    <button type="button" class="btn btn-default" data-dismiss="modal">关闭</button>
-                </div>
+                <button class="btn btn-success" onclick="setConfig()">提交</button>
             </div>
         </div>
     </div>
@@ -153,6 +134,9 @@
     <!-- 引入本地jQuery和Bootstrap JS -->
     <script src="/static/js/jquery.min.js"></script>
     <script src="/static/js/bootstrap.min.js"></script>
+
+    <!-- 引入本地模态框 -->
+    <script src="/static/js/modal.js"></script>
     <script src="/static/js/public.js"></script>
 
     <script>
@@ -167,27 +151,34 @@
             getConfig();
         }
 
+        //保存设置
         function setConfig() {
-            let data = {
-                ca: ca.val(),
-                cert: cert.val(),
-                key: key.val(),
-                dh: dh.val(),
-                server_net: serverNet.val(),
-                server_port: serverPort.val()
-            }
-            $.ajax({
-                url: "/api/vpn/setConfig",
-                method: "POST",
-                timeout: 10000,
-                contentType: 'application/json',
-                data: JSON.stringify(data),
-                headers: { "authorization": localStorage.getItem('authToken') }
-            }).done(checkResCode(res => {
-                window.location.href = '?';
-            }));
+            confirmModal.show(`是否提交设置？`, () => {
+                loadingModal.show();
+                let data = {
+                    ca: ca.val(),
+                    cert: cert.val(),
+                    key: key.val(),
+                    dh: dh.val(),
+                    server_net: serverNet.val(),
+                    server_port: serverPort.val()
+                }
+                $.ajax({
+                    url: "/api/vpn/setConfig",
+                    method: "POST",
+                    timeout: 10000,
+                    contentType: 'application/json',
+                    data: JSON.stringify(data),
+                    headers: { "authorization": localStorage.getItem('authToken') }
+                }).done(checkResCode(res => {
+                    successModal.show('保存配置成功！');
+                })).fail(handleXhrFail).always(() => {
+                    loadingModal.hide();
+                });
+            });
         }
 
+        //读取设置
         function getConfig() {
             $.ajax({
                 url: "/api/vpn/getConfig",
@@ -202,11 +193,7 @@
                 dh.text(res.data.dh);
                 serverNet.text(res.data.serverNet);
                 serverPort.text(res.data.serverPort);
-            }));
-        }
-
-        function setBtn() {
-            $('#setModal').modal('show');
+            })).fail(handleXhrFail);
         }
 
         init();

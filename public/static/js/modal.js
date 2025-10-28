@@ -31,17 +31,18 @@
                 <h4 class="modal-title">操作失败</h4>
             </div>
             <div class="modal-body">
-                <p id="error-message"></p>
+                <p id="errorModal-message"></p>
             </div>
             <div class="modal-footer">
-                <button type="button" class="btn btn-default" data-dismiss="modal" onclick="reflush()">关闭</button>
+                <button type="button" class="btn btn-default" data-dismiss="modal">关闭</button>
             </div>
         </div>
     </div>
     <script>
         let errorModal = {
-            show: (msg) => {
-                $('#error-message').text(msg || '操作失败。');
+            show: (msg, next) => {
+                $('#errorModal').on('hidden.bs.modal', e => {if (next) next();else reflush();} );
+                $('#errorModal-message').text(msg || '操作失败。');
                 $('#errorModal').modal('show');
             },
             hide: () => {
@@ -56,15 +57,16 @@
     <div class="modal-dialog modal-sm">
         <div class="modal-content">
             <div class="modal-body text-center">
-                <h5><span class="glyphicon glyphicon-check"></span>操作成功！</h5>
+                <h5><span class="glyphicon glyphicon-check"></span><span id="successModal-message">操作成功！</span></h5>
                 <button type="button" class="btn btn-default" data-dismiss="modal">关闭</button>
             </div>
         </div>
     </div>
     <script>
-        $('#successModal').on('hidden.bs.modal', e => reflush() );
         let successModal = {
-            show: (msg) => {
+            show: (msg, next) => {
+                $('#successModal').on('hidden.bs.modal', e => {if (next) next();else reflush();} );
+                $('#successModal-message').text(msg || '操作成功！');
                 $('#successModal').modal('show');
             },
             hide: () => {

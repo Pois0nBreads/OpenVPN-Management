@@ -262,6 +262,9 @@
     <!-- 引入本地jQuery和Bootstrap JS -->
     <script src="/static/js/jquery.min.js"></script>
     <script src="/static/js/bootstrap.min.js"></script>
+
+    <!-- 引入本地模态框 -->
+    <script src="/static/js/modal.js"></script>
     <script src="/static/js/public.js"></script>
 
 	<script>
@@ -282,7 +285,7 @@
 				$('#localtime').text(data.localtime);
 				$('#uptime').text(data.uptime);
 				$('#overload').text(data.loadavg);
-			}));
+			})).fail(handleXhrFail);
 		}
 		
 		function getMemInfo() {
@@ -307,7 +310,7 @@
 				$('#usedProc').css('width',`${used}%`);
 				$('#buffersProc').css('width',`${buffers}%`);
 				$('#cachedProc').css('width',`${cached}%`);
-			}));
+			})).fail(handleXhrFail);
 			setTimeout(getMemInfo, 5000);
 		}
 

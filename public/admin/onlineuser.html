@@ -128,10 +128,10 @@
     <!-- 引入本地jQuery和Bootstrap JS -->
     <script src="/static/js/jquery.min.js"></script>
     <script src="/static/js/bootstrap.min.js"></script>
-    <script src="/static/js/public.js"></script>
     
     <!-- 引入本地模态框 -->
     <script src="/static/js/modal.js"></script>
+    <script src="/static/js/public.js"></script>
 
     <script>
         let list = $('#clientList');
@@ -149,27 +149,16 @@
                     url: "/api/user/killOnlinebUser",
                     method: "POST",
                     timeout: 10000,
+                    contentType: 'application/json',
                     data: JSON.stringify({ token: _token }),
-                    headers: { 
-                        "Content-Type": "application/json",
-                        "authorization": localStorage.getItem('authToken') 
-                    }
+                    headers: { "authorization": localStorage.getItem('authToken') }
                 }).done(res => {
                     if (res.code === 0) {
                         successModal.show();
                         return;
                     }
                     errorModal.show(res.msg);
-                }).fail((xhr, status, error) => {
-                    let errorMsg = '网络错误，请稍后重试。';
-                    if (xhr.responseJSON && xhr.responseJSON.msg) {
-                        errorMsg = xhr.responseJSON.msg;
-                    } else if (status === 'timeout') {
-                        errorMsg = '请求超时，请检查网络连接。';
-                    }
-                    errorModal.show(errorMsg);
-                    console.error('登录请求失败:', status, error);
-                }).always(()=> {
+                }).fail(handleXhrFail).always(() => {
                     loadingModal.hide();
                 });
             });
@@ -181,7 +170,6 @@
                 method: "POST",
                 timeout: 10000,
                 headers: { "authorization": localStorage.getItem('authToken') }
-                ,
             }).done(checkResCode(res => {
                 let authToken = localStorage.getItem('authToken');
                 list.empty();

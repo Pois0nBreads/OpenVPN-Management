@@ -11,6 +11,29 @@ function logout() {
     window.location.href = '/';
 }
 
+//错误弹窗通用处理函数
+function alertError(msg, next) {
+    if (typeof errorModal !== 'undefined') {
+        errorModal.show(msg, next);
+    } else {
+        alert(msg);
+        if (next)
+            next();
+    }
+};
+
+//Xhr通用处理函数
+function handleXhrFail(xhr, status, error) {
+    let errorMsg = '网络错误，请稍后重试。';
+    if (xhr.responseJSON && xhr.responseJSON.msg) {
+        errorMsg = xhr.responseJSON.msg;
+    } else if (status === 'timeout') {
+        errorMsg = '请求超时，请检查网络连接。';
+    }
+    alertError(errorMsg);
+    console.error('登录请求失败:', status, error);
+}
+
 //检查token权限，跳转到对应网页
 function checkPermission() {
     const savedToken = localStorage.getItem('authToken');
@@ -29,26 +52,30 @@ function checkPermission() {
         $('#loadingModal').modal('hide');
         switch (response.level) {
             case 1:
-                alert('权限错误，跳转到对应页面...');
+                alertError('权限错误，跳转到对应页面...', ()=>{
+                    window.location.href = '/user/';
+                });
                 console.log('普通用户');
-                window.location.href = '/user/';
                 break;
             case 2:
-                alert('权限错误，跳转到对应页面...');
+                alertError('权限错误，跳转到对应页面...', ()=>{
+                    window.location.href = '/admin/';
+                });
                 console.log('管理员');
-                window.location.href = '/admin/';
                 break;
             default:
-                alert('权限错误，跳转到登录页面...');
+                alertError('权限错误，跳转到登录页面...', ()=>{
+                    localStorage.removeItem('authToken');
+                    window.location.href = '/';
+                });
                 console.log('无权限');
-                localStorage.removeItem('authToken');
-                window.location.href = '/';
                 break;
         }
     })
     .fail(function(xhr, status, error) {
-        alert('权限错误，跳转到登录页面...');
-        window.location.href = '/';
+        alertError('权限错误，跳转到登录页面...', ()=>{
+            window.location.href = '/';
+        });
     });
 }
 
@@ -63,7 +90,7 @@ function checkResCode(next, err) {
             if (err)
                 err(res);
             else
-                alert('系统出错' + res.msg);
+                alertError('系统出错' + res.msg);
             return;
         }
         next(res);
