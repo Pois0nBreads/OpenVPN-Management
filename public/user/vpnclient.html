@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="zh-cn">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -12,13 +13,16 @@
             padding-left: 15px;
             padding-right: 15px;
         }
+
         body {
             padding-top: 50px;
         }
+
         .progress {
             margin-bottom: 5px;
             height: 10px;
         }
+
         .progress-info {
             margin-bottom: 10px;
         }
@@ -64,21 +68,37 @@
 
     <!-- 主内容区 - 浅色背景 -->
     <div class="container">
-        <h2>状态</h2>
+        <h2>VPN在线客户端</h2>
 
         <!-- 系统信息 -->
         <div class="panel panel-default">
             <div class="panel-heading">
-                <h3 class="panel-title">系统</h3>
+                <h3 class="panel-title">客户端列表 (只显示当前用户自己的VPN客户端)</h3>
             </div>
-
+            <div class="panel-body">
+                <table class="table table-bordered ">
+                    <thead>
+                        <tr>
+                            <td width="10%">客户端ID</td>
+                            <td >用户归属</td>
+                            <td >虚拟地址</td>
+                            <td >对端连接信息</td>
+                            <td >连接时间</td>
+                            <td >接受字节</td>
+                            <td >发送字节</td>
+                            <td >强制下线</td>
+                        </tr>
+                    </thead>
+                    <tbody  id="clientList" >
+                    </tbody>
+                    
+                </table>
+            </div>
         </div>
 
-
-
-
-        
     </div>
+
+
 
     <!-- 页脚 -->
     <footer class="navbar navbar-default">
@@ -94,27 +114,55 @@
     <script src="/static/js/bootstrap.min.js"></script>
     <script src="/static/js/public.js"></script>
 
-	<script>
-		function init() {
-			$.ajax({
-				url: "/api/system/systemInfo",
-				method: "POST",
-				timeout: 10000,
-				headers: { "authorization": localStorage.getItem('authToken') }
-			,}).done(checkResCode(res => {
-				let data = res.data;
-				$('#hostname').text(data.hostname);
-				$('#model').text(data.model);
-				$('#cpuname').text(data.cpuname);
-				$('#arch').text(data.arch);
-				$('#target').text(data.target);
-				$('#kernel').text(data.kernel);
-				$('#localtime').text(data.localtime);
-				$('#uptime').text(data.uptime);
-				$('#overload').text(data.loadavg);
-			}));
-		}
+    <script>
+        let list = $('#clientList');
 
-	</script>
+        function init() {
+            getClientList();
+        }
+
+        function killClient(id) {
+            id = "" + id;
+            $.ajax({
+                url: "/api/vpn/killMyClient",
+                method: "POST",
+                timeout: 10000,
+                contentType: 'application/json',
+                data: JSON.stringify({id: id}),
+                headers: { "authorization": localStorage.getItem('authToken') }
+            }).done(checkResCode(res => {
+                getClientList();
+            }));
+        }
+
+        function getClientList() {
+            $.ajax({
+                url: "/api/vpn/getMyClients",
+                method: "POST",
+                timeout: 10000,
+                headers: { "authorization": localStorage.getItem('authToken') }
+                ,
+            }).done(checkResCode(res => {
+                list.empty();
+                for (let client of res.data) {
+                    let row = $('<tr>');
+                    row.append(`<td>${client.clientID}</td>`);
+                    row.append(`<td>${client.commonName}</td>`);
+                    row.append(`<td>${client.virtualAddress}</td>`);
+                    row.append(`<td>${client.realAddress}</td>`);
+                    row.append(`<td>${new Date(client.connectTime_t * 1000).toLocaleString()}</td>`);
+                    row.append(`<td>${client.rxBytes}</td>`);
+                    row.append(`<td>${client.txBytes}</td>`);
+                    row.append(`<td><button class="btn btn-danger" onclick="killClient(${client.clientID})">下线</button></td>`);
+                    list.append(row);
+                }
+            }));
+        }
+
+        
+
+        init();
+    </script>
 </body>
+
 </html>

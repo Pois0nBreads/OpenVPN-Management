@@ -69,3 +69,21 @@ function checkResCode(next, err) {
         next(res);
     }
 }
+
+function getMyname() {
+    $.ajax({
+        url: "/api/user/myinfo",
+        method: "POST",
+        timeout: 10000,
+        headers: { "authorization": localStorage.getItem('authToken') }
+    ,}).done(checkResCode(res => {
+        let data = res.data;
+        $('#myname').text(data.username)
+    }));
+}
+getMyname();
+
+//刷新网页
+function reflush() {
+    window.location.href = '?';
+}
