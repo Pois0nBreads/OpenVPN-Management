@@ -29,14 +29,17 @@ function checkPermission() {
         $('#loadingModal').modal('hide');
         switch (response.level) {
             case 1:
+                alert('权限错误，跳转到对应页面...');
                 console.log('普通用户');
                 window.location.href = '/user/';
                 break;
             case 2:
+                alert('权限错误，跳转到对应页面...');
                 console.log('管理员');
                 window.location.href = '/admin/';
                 break;
             default:
+                alert('权限错误，跳转到登录页面...');
                 console.log('无权限');
                 localStorage.removeItem('authToken');
                 window.location.href = '/';
@@ -44,19 +47,23 @@ function checkPermission() {
         }
     })
     .fail(function(xhr, status, error) {
+        alert('权限错误，跳转到登录页面...');
         window.location.href = '/';
     });
 }
 
 //检查权限
-function checkResCode(next) {
+function checkResCode(next, err) {
     return function(res) {
         if (res.code == 401) {
             checkPermission();
             return;
         }
         if (res.code != 0) {
-            alert(res.msg);
+            if (err)
+                err(res);
+            else
+                alert('系统出错' + res.msg);
             return;
         }
         next(res);
