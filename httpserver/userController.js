@@ -105,7 +105,7 @@ class UserController {
          * 登出接口 @User
          */
         router.post('/logout', (req, res) => {
-            this.tokenManager.destoryToken(req.cookies.token);
+            this.tokenManager.destoryToken(req.__token);
             res.send({
                 code: 0,
                 msg: '登出成功'

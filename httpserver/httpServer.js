@@ -42,6 +42,7 @@ class HttpServer {
                 //let token = req.cookies.token;
                 let token = req.headers['authorization'];
                 console.debug(`token: ${token}`);
+                req.__token = token;
                 req.__access_level = _this.authorization(token).level;
                 req.__access_user = _this.authorization(token).user;
             }
