@@ -134,7 +134,6 @@
     <script src="/static/js/public.js"></script>
 
     <script>
-        let list = $('#clientList');
 
         function init() {
             getClientList();
@@ -172,6 +171,7 @@
                 headers: { "authorization": localStorage.getItem('authToken') }
             }).done(checkResCode(res => {
                 let authToken = localStorage.getItem('authToken');
+                let list = $('#clientList');
                 list.empty();
                 for (let user of res.data) {
                     let curruteUser = user.token === authToken;
