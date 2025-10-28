@@ -1,0 +1,491 @@
+<!DOCTYPE html>
+<html lang="zh-cn">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>VPN管理系统</title>
+    <!-- Bootstrap 3 CSS -->
+    <link rel="stylesheet" href="/static/css/bootstrap.min.css">
+    <style>
+        /* 仅添加必要的对齐样式和进度条调整 */
+        .navbar .container {
+            padding-left: 15px;
+            padding-right: 15px;
+        }
+
+        body {
+            padding-top: 50px;
+        }
+
+        .progress {
+            margin-bottom: 5px;
+            height: 10px;
+        }
+
+        .progress-info {
+            margin-bottom: 10px;
+        }
+    </style>
+</head>
+
+<body>
+    <!-- 深色导航栏 -->
+    <nav class="navbar navbar-inverse navbar-fixed-top">
+        <div class="container">
+            <div class="navbar-header">
+                <button type="button" class="navbar-toggle collapsed" data-toggle="collapse"
+                    data-target="#navbar-collapse">
+                    <span class="sr-only">切换导航</span>
+                    <span class="icon-bar"></span>
+                    <span class="icon-bar"></span>
+                    <span class="icon-bar"></span>
+                </button>
+                <a class="navbar-brand" href="/admin">VPN管理系统</a>
+            </div>
+
+            <div class="collapse navbar-collapse" id="navbar-collapse">
+                <ul class="nav navbar-nav">
+                    <li class="dropdown">
+                        <a href="#" class="dropdown-toggle" data-toggle="dropdown">状态 <span class="caret"></span></a>
+                        <ul class="dropdown-menu">
+                            <li><a href="/admin">概览</a></li>
+                            <li><a href="route.html">路由</a></li>
+                            <li><a href="iptables.html">防火墙</a></li>
+                            <li><a href="onlineuser.html">在线用户</a></li>
+                        </ul>
+                    </li>
+                    <li class="dropdown">
+                        <a href="#" class="dropdown-toggle" data-toggle="dropdown">VPN系统 <span class="caret"></span></a>
+                        <ul class="dropdown-menu">
+                            <li><a href="vpn.html">概览</a></li>
+                            <li><a href="vpnclient.html">VPN在线客户端</a></li>
+                            <li><a href="vpnconfig.html">VPN配置</a></li>
+                        </ul>
+                    </li>
+                    <li><a href="usermanager.html">用户管理</a></li>
+                    <li><a href="rolemanager.html">角色管理</a></li>
+                    <li><a href="networkmanager.html">网络组管理</a></li>
+                </ul>
+
+                <div class="navbar-right">
+                    <ul class="nav navbar-nav">
+                        <li><a href="?"><span class="glyphicon glyphicon-refresh"></span> 刷新</a></li>
+                        <li><a href="/download.html" target="_blank"><span
+                                    class=".glyphicon .glyphicon-download"></span> 下载客户端配置</a></li>
+                        <li class="dropdown">
+                            <a href="#" class="dropdown-toggle" data-toggle="dropdown"><span id="myname">我</span><span
+                                    class="caret"></span></a>
+                            <ul class="dropdown-menu">
+                                <li><a href="userconfig.html">用户配置</a></li>
+                                <li><a href="javascript:void(0);" onclick="logout()">退出</a></li>
+                            </ul>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- 主内容区 - 浅色背景 -->
+    <div class="container">
+        <h2>用户管理</h2>
+
+        <!-- 系统信息 -->
+        <div class="panel panel-default">
+            <div class="panel-heading clearfix">
+                <h2 class="panel-title pull-left" style="margin-top: 10px;">用户列表</h2>
+                <div class="btn-group pull-right">
+                    <button class="btn btn-success" onclick="newUserModal.show()">添加用户</button>
+                </div>
+            </div>
+            <div class="panel-body">
+                <div>
+                </div>
+                <table class="table table-bordered ">
+                    <thead>
+                        <tr>
+                            <td width="5%">UID</td>
+                            <td width="20%">用户名</td>
+                            <td width="20%">昵称</td>
+                            <td width="15%">最近登录时间</td>
+                            <td width="8%">修改密码</td>
+                            <td width="8%">修改昵称</td>
+                            <td width="8%">修改角色</td>
+                            <td width="8%">删除用户</td>
+                        </tr>
+                    </thead>
+                    <tbody id="userList">
+                    </tbody>
+
+                </table>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- 本地模态框 -->
+    <div>
+        <!-- 新建用户弹窗 -->
+        <div class="modal fade" id="newUserModal" tabindex="-1">
+            <div class="modal-dialog modal-xm">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+                        <h4 class="modal-title">添加用户</h4>
+                    </div>
+                    <div class="modal-body">
+                        <p id="newUserModal-message"></p>
+                        <div class="form-inline">
+                            <label style="width: 75px;">用户名: </label>
+                            <input type="text" class="form-control" id="newUserModal-user">
+                        </div>
+                        <br>
+                        <div class="form-inline">
+                            <label style="width: 75px;">密码: </label>
+                            <input type="text" class="form-control" id="newUserModal-pass">
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-primary" id="newUserModal-btn">提交修改</button>
+                        <button type="button" class="btn btn-default" data-dismiss="modal">关闭</button>
+                    </div>
+                </div>
+            </div>
+            <script>
+                let newUserModal = {
+                    show: () => {
+                        $('#newUserModal-message').text(`正在新建用户`);
+                        $('#newUserModal-btn').off('click').click(() => {
+                            let user = $('#newUserModal-user').val();
+                            let pass = $('#newUserModal-pass').val();
+                            confirmModal.show(`是否添加用户 ${user} ?`, () => {
+                                loadingModal.show();
+                                $.ajax({
+                                    url: "/api/user/add",
+                                    method: "POST",
+                                    timeout: 10000,
+                                    contentType: 'application/json',
+                                    data: JSON.stringify({ username: user, password: pass }),
+                                    headers: { "authorization": localStorage.getItem('authToken') }
+                                }).done(checkResCode(res => {
+                                    $('#newUserModal').modal('hide');
+                                    successModal.show('添加用户成功');
+                                }, res => {
+                                    errorModal.show(res.msg, ()=>{});
+                                })).fail(handleXhrFail).always(() => {
+                                    loadingModal.hide();
+                                });
+                            });
+                        });
+                        $('#newUserModal').modal('show');
+                    },
+                    hide: () => {
+                        $('#newUserModal').modal('hide');
+                    }
+                }
+            </script>
+        </div>
+        
+        <!-- 修改密码弹窗 -->
+        <div class="modal fade" id="passwdModal" tabindex="-1">
+            <div class="modal-dialog modal-xm">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+                        <h4 class="modal-title">修改密码</h4>
+                    </div>
+                    <div class="modal-body">
+                        <p id="passwdModal-message"></p>
+                        <div class="form-inline">
+                            <label style="width: 75px;">新密码: </label>
+                            <input type="text" class="form-control" id="passwdModal-newpass">
+                        </div>
+                        <br>
+                        <div class="form-inline">
+                            <label style="width: 75px;">重复密码: </label>
+                            <input type="text" class="form-control" id="passwdModal-renewpass">
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-primary" id="passwdModal-btn">提交修改</button>
+                        <button type="button" class="btn btn-default" data-dismiss="modal">关闭</button>
+                    </div>
+                </div>
+            </div>
+            <script>
+                let passwdModal = {
+                    show: (username) => {
+                        $('#passwdModal-message').text(`正在修改用户 ${username} 的密码`);
+                        $('#passwdModal-btn').off('click').click(() => {
+                            let _username = "" + username;
+                            let a = $('#passwdModal-newpass').val();
+                            let b = $('#passwdModal-renewpass').val();
+                            if (a !== b) {
+                                errorModal.show('新旧密码不一样！', ()=>{});
+                                return;
+                            }
+                            if (a === null || a === '') {
+                                errorModal.show('密码不能为空！', ()=>{});
+                                return;
+                            }
+                            confirmModal.show(`是否修改用户 ${username} 的密码?`, () => {
+                                loadingModal.show();
+                                $.ajax({
+                                    url: "/api/user/update/passwd",
+                                    method: "POST",
+                                    timeout: 10000,
+                                    contentType: 'application/json',
+                                    data: JSON.stringify({ username: _username, password: a }),
+                                    headers: { "authorization": localStorage.getItem('authToken') }
+                                }).done(checkResCode(res => {
+                                    $('#passwdModal').modal('hide');
+                                    successModal.show('修改用户密码成功');
+                                }, res => {
+                                    errorModal.show(res.msg, ()=>{});
+                                })).fail(handleXhrFail).always(() => {
+                                    loadingModal.hide();
+                                });
+                            });
+                        });
+                        $('#passwdModal').modal('show');
+                    },
+                    hide: () => {
+                        $('#passwdModal').modal('hide');
+                    }
+                }
+            </script>
+        </div>
+
+        <!-- 修改昵称弹窗 -->
+        <div class="modal fade" id="renameModal" tabindex="-1">
+            <div class="modal-dialog modal-xm">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+                        <h4 class="modal-title">修改昵称</h4>
+                    </div>
+                    <div class="modal-body">
+                        <p id="renameModal-message"></p>
+                        <div class="form-inline">
+                            <label style="width: 75px;">新昵称: </label>
+                            <input type="text" class="form-control" id="renameModal-nickname">
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-primary" id="renameModal-btn">提交修改</button>
+                        <button type="button" class="btn btn-default" data-dismiss="modal">关闭</button>
+                    </div>
+                </div>
+            </div>
+            <script>
+                let renameModal = {
+                    show: (username) => {
+                        $('#renameModal-message').text(`正在修改用户 ${username} 的昵称`);
+                        $('#renameModal-btn').off('click').click(() => {
+                            let _username = "" + username;
+                            let nickname = $('#renameModal-nickname').val();
+                            confirmModal.show(`是否修改用户 ${username} 的昵称?`, () => {
+                                loadingModal.show();
+                                $.ajax({
+                                    url: "/api/user/update/nickname",
+                                    method: "POST",
+                                    timeout: 10000,
+                                    contentType: 'application/json',
+                                    data: JSON.stringify({ username: _username, nickname: nickname }),
+                                    headers: { "authorization": localStorage.getItem('authToken') }
+                                }).done(checkResCode(res => {
+                                    $('#renameModal').modal('hide');
+                                    successModal.show('修改用户昵称成功');
+                                }, res => {
+                                    errorModal.show(res.msg, ()=>{});
+                                })).fail(handleXhrFail).always(() => {
+                                    loadingModal.hide();
+                                });
+                            });
+                        });
+                        $('#renameModal').modal('show');
+                    },
+                    hide: () => {
+                        $('#renameModal').modal('hide');
+                    }
+                }
+            </script>
+        </div>
+
+        <!-- 修改角色弹窗 -->
+        <div class="modal fade" id="changeRoleModal" tabindex="-1">
+            <div class="modal-dialog modal-xm">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+                        <h4 class="modal-title">修改角色</h4>
+                    </div>
+                    <div class="modal-body">
+                        <p id="changeRoleModal-message"></p>
+                        <form id="changeRoleModal-form">
+                            <ul id="changeRoleModal-list">
+                            </ul>
+                        </form>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-primary" id="changeRoleModal-btn">提交修改</button>
+                        <button type="button" class="btn btn-default" data-dismiss="modal">关闭</button>
+                    </div>
+                </div>
+            </div>
+            <script>
+                let changeRoleModal = {
+                    show: (name) => {
+                        let _next = (username, allRoleList, userRoleList) => {
+                            let ulList = $('#changeRoleModal-list');
+                            ulList.empty();
+                            for (let arole of allRoleList) {
+                                let checked = false;
+                                for (let urole of userRoleList)
+                                    if (parseInt(urole) === arole.uid) checked = true;
+                                ulList.append($(`<li><input type="checkbox" name="role" value="${arole.uid}" ${checked?'checked':''}>${arole.role_name}</li>`))
+                            }
+                            $('#changeRoleModal-message').text(`正在修改用户 ${username} 的角色`);
+                            $('#changeRoleModal-btn').off('click').click(() => {
+                                let data = new FormData($('#changeRoleModal-form')[0]);
+                                let roles = data.getAll('role');
+                                confirmModal.show(`是否修改用户 ${username} 的角色?`, () => {
+                                    loadingModal.show();
+                                    $.ajax({
+                                        url: "/api/user/update/roles",
+                                        method: "POST",
+                                        timeout: 10000,
+                                        contentType: 'application/json',
+                                        data: JSON.stringify({ username: username, roles: roles }),
+                                        headers: { "authorization": localStorage.getItem('authToken') }
+                                    }).done(checkResCode(res => {
+                                        $('#changeRoleModal').modal('hide');
+                                        successModal.show('修改用户角色成功');
+                                    }, res => {
+                                        errorModal.show(res.msg, ()=>{});
+                                    })).fail(handleXhrFail).always(() => {
+                                        loadingModal.hide();
+                                    });
+                                });
+                            });
+                            $('#changeRoleModal').modal('show');
+                        }
+                        let _username = "" + name;
+                        getAllRoleList(roleList => getUserRoleList(_username, userRoles => _next(_username, roleList, userRoles) ) );
+                    },
+                    hide: () => {
+                        $('#changeRoleModal').modal('hide');
+                    }
+                }
+            </script>
+        </div>
+    </div>
+
+
+    <!-- 页脚 -->
+    <footer class="navbar navbar-default">
+        <div class="container">
+            <p class="navbar-text">
+                <a href="https://github.com/twbs/bootstrap">Powered by Bootstrap 3.4.1 </a> / VPN-Management 0.1
+            </p>
+        </div>
+    </footer>
+
+    <!-- 引入本地jQuery和Bootstrap JS -->
+    <script src="/static/js/jquery.min.js"></script>
+    <script src="/static/js/bootstrap.min.js"></script>
+
+    <!-- 引入本地模态框 -->
+    <script src="/static/js/modal.js"></script>
+    <script src="/static/js/public.js"></script>
+
+    <script>
+
+        function init() {
+            getUserList();
+        }
+
+        //获删除用户
+        function deleteUser(username) {
+            let _username = "" + username;
+            confirmModal.show(`您确认要删除 ${_username} 么？这不可恢复！`, () => {
+                loadingModal.show();
+                $.ajax({
+                    url: "/api/user/delete",
+                    method: "POST",
+                    timeout: 10000,
+                    contentType: 'application/json',
+                    data: JSON.stringify({ username: _username }),
+                    headers: { "authorization": localStorage.getItem('authToken') }
+                }).done(res => {
+                    if (res.code === 0) {
+                        successModal.show(`删除用户 ${_username} 成功`);
+                        return;
+                    }
+                    errorModal.show(res.msg);
+                }).fail(handleXhrFail).always(() => {
+                    loadingModal.hide();
+                });
+            });
+        }
+
+        //获取全部用户
+        function getUserList() {
+            $.ajax({
+                url: "/api/user/getAll",
+                method: "POST",
+                timeout: 10000,
+                headers: { "authorization": localStorage.getItem('authToken') }
+            }).done(checkResCode(res => {
+                let authToken = localStorage.getItem('authToken');
+                let list = $('#userList');
+                list.empty();
+                for (let user of res.data) {
+                    if (user.username === 'Administrator')
+                        continue;
+                    let row = $('<tr>');
+                    row.append(`<td>${user.uid}</td>`);
+                    row.append(`<td>${user.username}</td>`);
+                    row.append(`<td>${user.nickname}</td>`);
+                    row.append(`<td>${new Date(user.last_login).toLocaleString()}</td>`);
+                    row.append(`<td><button class="btn btn-sm btn-sm btn-primary" onclick="passwdModal.show('${user.username}')">修改密码</button></td>`);
+                    row.append(`<td><button class="btn btn-sm btn-sm btn-primary" onclick="renameModal.show('${user.username}')">修改昵称</button></td>`);
+                    row.append(`<td><button class="btn btn-sm btn-sm btn-warning" onclick="changeRoleModal.show('${user.username}')">修改角色</button></td>`);
+                    row.append(`<td><button class="btn btn-sm btn-sm btn-danger" onclick="deleteUser('${user.username}')">删除用户</button></td>`);
+                    list.append(row);
+                }
+            })).fail(handleXhrFail);
+        }
+        
+        //获取全部角色
+        function getAllRoleList(next) {
+            $.ajax({
+                url: "/api/role/getAll",
+                method: "POST",
+                timeout: 10000,
+                headers: { "authorization": localStorage.getItem('authToken') }
+            }).done(checkResCode(res => {
+                next(res.data);
+            })).fail(handleXhrFail);
+        }
+        
+        //获取某个用户roles
+        function getUserRoleList(username, next) {
+            $.ajax({
+                url: "/api/user/info",
+                method: "POST",
+                timeout: 10000,
+                contentType: 'application/json',
+                data: JSON.stringify({ username: username }),
+                headers: { "authorization": localStorage.getItem('authToken') }
+            }).done(checkResCode(res => {
+                next(res.data.roles);
+            })).fail(handleXhrFail);
+        }
+
+        init();
+    </script>
+</body>
+
+</html>
