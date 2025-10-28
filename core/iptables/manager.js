@@ -82,6 +82,19 @@ class Manager {
 				contr.deleteChain(name);
 	}
 	
+	//获取全部filter数据返回数组
+	getFilterTables() {
+		let result = [];
+		let raw = this.controller.getAllRules();
+		for (let name in raw) {
+			let table = {}
+			table.name = name;
+			table.rules = raw[name];
+			result.push(table);
+		}
+		return result;
+	}
+
 	//刷新OPENVPN链
 	reflushVPNChain() {
 		console.log(`刷新OVPN链规则`)

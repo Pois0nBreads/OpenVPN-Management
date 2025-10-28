@@ -147,6 +147,7 @@ const ConfigDAO = require('./dao/configDAO.js');
 		.setNetworkDAO(networkDAO)
 		.create();
 	let systemController = new SystemController(tokenManager)
+		.setIptableManager(mIptablesManager)
 		.setConfigDAO(configDAO)
 		.create();
 	let vpnController = new VPNController(tokenManager)

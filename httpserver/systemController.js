@@ -151,6 +151,24 @@ class SystemController {
                 });
             }
         });
+        /**
+         * 查询防火墙接口
+         */
+        router.post('/firewall', async (req, res) => {
+            try {
+                let firewallData = this.iptableManager.getFilterTables();
+                res.send({
+                    code: 0,
+                    msg: '查询防火墙数据成功',
+                    data: firewallData
+                });
+            } catch (e) {
+                res.send({
+                    code: -1,
+                    msg: '查询防火墙数据失败' + e
+                });
+            }
+        });
 
 
         this.controller = router;
@@ -158,6 +176,11 @@ class SystemController {
 
     setConfigDAO(dao) {
         this.configDAO = dao;
+        return this;
+    }
+
+    setIptableManager(manager) {
+        this.iptableManager = manager;
         return this;
     }
 
