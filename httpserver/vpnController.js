@@ -11,6 +11,8 @@ class VPNController {
         this.tokenManager = tokenManager;
         let router = express.Router();
         router.use(bodyParser.json());
+        router.use(express.urlencoded({ extended: true }));
+
         /**
          * 权限管理 @Administrator
          */
@@ -19,9 +21,11 @@ class VPNController {
             let user = req.__access_user;
             console.debug(`UserController: path - ${req.path}, user - ${user}, level - ${level}`);
             switch (req.path) {
+                case '/getClientConfig':
+                    next();
+                    break;
                 //用户接口
                 case '/getMyClients':
-                case '/getClientConfig':
                 case '/killMyClient':
                     if (level > 0) {
                         next();
@@ -35,10 +39,10 @@ class VPNController {
                 case '/start':
                 case '/stop':
                 case '/status':
-                case '/getClients':
                 case '/killClient':
                 case '/getConfig':
                 case '/setConfig':
+                case '/getClients':
                     if (level > 1) {
                         next();
                         break;
@@ -289,8 +293,17 @@ class VPNController {
         /**
          * 获取VPN客户端配置文件
          */
-        router.post('/getClientConfig', async (req, res) => {
+        router.get('/getClientConfig', async (req, res) => {
             try {
+                let authToken = req.query.authToken;
+                let tokenItem = this.tokenManager.getInfoByToken(authToken);
+                if (tokenItem.level < 1) {
+                    res.send({
+                        code: 401,
+                        msg: 'Token 无效 请重新登陆'
+                    });
+                    return;
+                }
                 let data = this.vpn.config.getClientConfig();
                 res.type('text/plain'); // 设置MIME类型为纯文本
                 res.attachment('config.ovpn')
