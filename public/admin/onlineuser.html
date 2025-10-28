@@ -182,7 +182,7 @@
                     row.append(`<td><button class="btn btn-danger" ${curruteUser ? 'disabled':''} onclick="killClient('${user.token}')">下线</button></td>`);
                     list.append(row);
                 }
-            }));
+            })).fail(handleXhrFail);
         }
 
         init();
