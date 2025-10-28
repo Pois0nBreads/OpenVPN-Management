@@ -1,0 +1,426 @@
+<!DOCTYPE html>
+<html lang="zh-cn">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>VPN管理系统</title>
+    <!-- Bootstrap 3 CSS -->
+    <link rel="stylesheet" href="/static/css/bootstrap.min.css">
+    <style>
+        /* 仅添加必要的对齐样式和进度条调整 */
+        .navbar .container {
+            padding-left: 15px;
+            padding-right: 15px;
+        }
+
+        body {
+            padding-top: 50px;
+        }
+
+        .progress {
+            margin-bottom: 5px;
+            height: 10px;
+        }
+
+        .progress-info {
+            margin-bottom: 10px;
+        }
+    </style>
+</head>
+
+<body>
+    <!-- 深色导航栏 -->
+    <nav class="navbar navbar-inverse navbar-fixed-top">
+        <div class="container">
+            <div class="navbar-header">
+                <button type="button" class="navbar-toggle collapsed" data-toggle="collapse"
+                    data-target="#navbar-collapse">
+                    <span class="sr-only">切换导航</span>
+                    <span class="icon-bar"></span>
+                    <span class="icon-bar"></span>
+                    <span class="icon-bar"></span>
+                </button>
+                <a class="navbar-brand" href="/admin">VPN管理系统</a>
+            </div>
+
+            <div class="collapse navbar-collapse" id="navbar-collapse">
+                <ul class="nav navbar-nav">
+                    <li class="dropdown">
+                        <a href="#" class="dropdown-toggle" data-toggle="dropdown">状态 <span class="caret"></span></a>
+                        <ul class="dropdown-menu">
+                            <li><a href="/admin">概览</a></li>
+                            <li><a href="route.html">路由</a></li>
+                            <li><a href="iptables.html">防火墙</a></li>
+                            <li><a href="onlineuser.html">在线用户</a></li>
+                        </ul>
+                    </li>
+                    <li class="dropdown">
+                        <a href="#" class="dropdown-toggle" data-toggle="dropdown">VPN系统 <span class="caret"></span></a>
+                        <ul class="dropdown-menu">
+                            <li><a href="vpn.html">概览</a></li>
+                            <li><a href="vpnclient.html">VPN在线客户端</a></li>
+                            <li><a href="vpnconfig.html">VPN配置</a></li>
+                        </ul>
+                    </li>
+                    <li><a href="usermanager.html">用户管理</a></li>
+                    <li><a href="rolemanager.html">角色管理</a></li>
+                    <li><a href="networkmanager.html">网络组管理</a></li>
+                </ul>
+
+                <div class="navbar-right">
+                    <ul class="nav navbar-nav">
+                        <li><a href="?"><span class="glyphicon glyphicon-refresh"></span> 刷新</a></li>
+                        <li><a href="/download.html" target="_blank"><span
+                                    class=".glyphicon .glyphicon-download"></span> 下载客户端配置</a></li>
+                        <li class="dropdown">
+                            <a href="#" class="dropdown-toggle" data-toggle="dropdown"><span id="myname">我</span><span
+                                    class="caret"></span></a>
+                            <ul class="dropdown-menu">
+                                <li><a href="userconfig.html">用户配置</a></li>
+                                <li><a href="javascript:void(0);" onclick="logout()">退出</a></li>
+                            </ul>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- 主内容区 - 浅色背景 -->
+    <div class="container">
+        <h2>角色管理</h2>
+
+        <!-- 角色管理 -->
+        <div class="panel panel-default">
+            <div class="panel-heading clearfix">
+                <h2 class="panel-title pull-left" style="margin-top: 10px;">角色列表</h2>
+                <div class="btn-group pull-right">
+                    <button class="btn btn-success" onclick="newRoleModal.show()">添加角色</button>
+                </div>
+            </div>
+            <div class="panel-body">
+                <div>
+                </div>
+                <table class="table table-bordered ">
+                    <thead>
+                        <tr>
+                            <td width="5%">UID</td>
+                            <td>角色名</td>
+                            <td width="8%">修改名称</td>
+                            <td width="8%">修改网络组</td>
+                            <td width="8%">删除角色</td>
+                        </tr>
+                    </thead>
+                    <tbody id="roleList">
+                    </tbody>
+
+                </table>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- 本地模态框 -->
+    <div>
+        <!-- 添加角色弹窗 -->
+        <div class="modal fade" id="newRoleModal" tabindex="-1">
+            <div class="modal-dialog modal-xm">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+                        <h4 class="modal-title">添加角色</h4>
+                    </div>
+                    <div class="modal-body">
+                        <p id="newRoleModal-message"></p>
+                        <div class="form-inline">
+                            <label style="width: 75px;">角色名: </label>
+                            <input type="text" class="form-control" id="newRoleModal-name">
+                        </div>
+                        <hr>
+                        <p>请选择需要加入的网络组</p>
+                        <form id="newRoleModal-form">
+                            <ul id="newRoleModal-list">
+                            </ul>
+                        </form>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-primary" id="newRoleModal-btn">提交修改</button>
+                        <button type="button" class="btn btn-default" data-dismiss="modal">关闭</button>
+                    </div>
+                </div>
+            </div>
+            <script>
+                let newRoleModal = {
+                    show: () => {
+                        let _next = (allNets) => {
+                            let ulList = $('#newRoleModal-list');
+                            ulList.empty();
+                            for (let net of allNets) {
+                                ulList.append($(`<li><input type="checkbox" name="newRoleModal-net" value="${net.uid}">${net.network_name}</li>`))
+                            }
+                            $('#newRoleModal-message').text(`正在新建角色`);
+                            $('#newRoleModal-btn').off('click').click(() => {
+                                let data = new FormData($('#newRoleModal-form')[0]);
+                                let nets = data.getAll('newRoleModal-net');
+                                let name = $('#newRoleModal-name').val();
+                                confirmModal.show(`是否添加角色 ${name} ?`, () => {
+                                    loadingModal.show();
+                                    $.ajax({
+                                        url: "/api/role/add",
+                                        method: "POST",
+                                        timeout: 10000,
+                                        contentType: 'application/json',
+                                        data: JSON.stringify({ role_name: name, networks: nets }),
+                                        headers: { "authorization": localStorage.getItem('authToken') }
+                                    }).done(checkResCode(res => {
+                                        $('#newRoleModal').modal('hide');
+                                        successModal.show('添加角色成功');
+                                    }, res => {
+                                        errorModal.show(res.msg, ()=>{});
+                                    })).fail(handleXhrFail).always(() => {
+                                        loadingModal.hide();
+                                    });
+                                });
+                            });
+                            $('#newRoleModal').modal('show');
+                        }
+                        getAllNetworkList(allNets =>  _next(allNets) );
+                    },
+                    hide: () => {
+                        $('#newRoleModal').modal('hide');
+                    }
+                }
+            </script>
+        </div>
+
+        <!-- 修改名称弹窗 -->
+        <div class="modal fade" id="renameModal" tabindex="-1">
+            <div class="modal-dialog modal-xm">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+                        <h4 class="modal-title">修改角色名</h4>
+                    </div>
+                    <div class="modal-body">
+                        <p id="renameModal-message"></p>
+                        <div class="form-inline">
+                            <label style="width: 75px;">新角色名: </label>
+                            <input type="text" class="form-control" id="renameModal-role_name">
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-primary" id="renameModal-btn">提交修改</button>
+                        <button type="button" class="btn btn-default" data-dismiss="modal">关闭</button>
+                    </div>
+                </div>
+            </div>
+            <script>
+                let renameModal = {
+                    show: (uid, name) => {
+                        $('#renameModal-message').text(`正在修改 ${name} 的角色名`);
+                        $('#renameModal-btn').off('click').click(() => {
+                            let _uid = "" + uid;
+                            let role_name = $('#renameModal-role_name').val();
+                            confirmModal.show(`是否修改 ${name} 的角色名?`, () => {
+                                loadingModal.show();
+                                $.ajax({
+                                    url: "/api/role/update/name",
+                                    method: "POST",
+                                    timeout: 10000,
+                                    contentType: 'application/json',
+                                    data: JSON.stringify({ uid: _uid, role_name: role_name }),
+                                    headers: { "authorization": localStorage.getItem('authToken') }
+                                }).done(checkResCode(res => {
+                                    $('#renameModal').modal('hide');
+                                    successModal.show('修改角色名成功');
+                                }, res => {
+                                    errorModal.show(res.msg, ()=>{});
+                                })).fail(handleXhrFail).always(() => {
+                                    loadingModal.hide();
+                                });
+                            });
+                        });
+                        $('#renameModal').modal('show');
+                    },
+                    hide: () => {
+                        $('#renameModal').modal('hide');
+                    }
+                }
+            </script>
+        </div>
+
+        <!-- 修改角色网络组弹窗 -->
+        <div class="modal fade" id="changeRoleModal" tabindex="-1">
+            <div class="modal-dialog modal-xm">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+                        <h4 class="modal-title">修改角色</h4>
+                    </div>
+                    <div class="modal-body">
+                        <p id="changeRoleModal-message"></p>
+                        <hr>
+                        <p>请选择需要加入的网络组</p>
+                        <form id="changeRoleModal-form">
+                            <ul id="changeRoleModal-list">
+                            </ul>
+                        </form>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-primary" id="changeRoleModal-btn">提交修改</button>
+                        <button type="button" class="btn btn-default" data-dismiss="modal">关闭</button>
+                    </div>
+                </div>
+            </div>
+            <script>
+                let changeRoleModal = {
+                    show: (id, role_name) => {
+                        let _next = (uid, roleName, allNets, userNets) => {
+                            let ulList = $('#changeRoleModal-list');
+                            ulList.empty();
+                            for (let anet of allNets) {
+                                let checked = false;
+                                for (let unet of userNets)
+                                    if (parseInt(unet) === anet.uid) checked = true;
+                                ulList.append($(`<li><input type="checkbox" name="changeRoleModal-net" value="${anet.uid}" ${checked?'checked':''}>${anet.network_name}</li>`))
+                            }
+                            $('#changeRoleModal-message').text(`正在修改角色 ${roleName} 的网络组`);
+                            $('#changeRoleModal-btn').off('click').click(() => {
+                                let data = new FormData($('#changeRoleModal-form')[0]);
+                                let networks = data.getAll('changeRoleModal-net');
+                                confirmModal.show(`是否修改角色 ${roleName} 的网络组?`, () => {
+                                    loadingModal.show();
+                                    $.ajax({
+                                        url: "/api/role/update/networks",
+                                        method: "POST",
+                                        timeout: 10000,
+                                        contentType: 'application/json',
+                                        data: JSON.stringify({ uid: uid, networks: networks }),
+                                        headers: { "authorization": localStorage.getItem('authToken') }
+                                    }).done(checkResCode(res => {
+                                        $('#changeRoleModal').modal('hide');
+                                        successModal.show('修改角色网络组成功');
+                                    }, res => {
+                                        errorModal.show(res.msg, ()=>{});
+                                    })).fail(handleXhrFail).always(() => {
+                                        loadingModal.hide();
+                                    });
+                                });
+                            });
+                            $('#changeRoleModal').modal('show');
+                        }
+                        let _uid = "" + id;
+                        let _role_name = "" + role_name;
+                        getAllNetworkList(_allNets => getUserNetworkList(_uid, _userNets => _next(_uid, _role_name, _allNets, _userNets) ) );
+                    },
+                    hide: () => {
+                        $('#changeRoleModal').modal('hide');
+                    }
+                }
+            </script>
+        </div>
+    </div>
+
+
+    <!-- 页脚 -->
+    <footer class="navbar navbar-default">
+        <div class="container">
+            <p class="navbar-text">
+                <a href="https://github.com/twbs/bootstrap">Powered by Bootstrap 3.4.1 </a> / VPN-Management 0.1
+            </p>
+        </div>
+    </footer>
+
+    <!-- 引入本地jQuery和Bootstrap JS -->
+    <script src="/static/js/jquery.min.js"></script>
+    <script src="/static/js/bootstrap.min.js"></script>
+
+    <!-- 引入本地模态框 -->
+    <script src="/static/js/modal.js"></script>
+    <script src="/static/js/public.js"></script>
+
+    <script>
+
+        function init() {
+            getRoleList();
+        }
+
+        //获删除角色
+        function deleteRole(uid, role_name) {
+            let _role_name = "" + role_name;
+            confirmModal.show(`您确认要删除 ${_role_name} 么？这不可恢复！`, () => {
+                loadingModal.show();
+                $.ajax({
+                    url: "/api/role/delete",
+                    method: "POST",
+                    timeout: 10000,
+                    contentType: 'application/json',
+                    data: JSON.stringify({ uid: uid }),
+                    headers: { "authorization": localStorage.getItem('authToken') }
+                }).done(res => {
+                    if (res.code === 0) {
+                        successModal.show(`删除角色 ${_role_name} 成功`);
+                        return;
+                    }
+                    errorModal.show(res.msg);
+                }).fail(handleXhrFail).always(() => {
+                    loadingModal.hide();
+                });
+            });
+        }
+
+        //获取全部角色
+        function getRoleList() {
+            $.ajax({
+                url: "/api/role/getAll",
+                method: "POST",
+                timeout: 10000,
+                headers: { "authorization": localStorage.getItem('authToken') }
+            }).done(checkResCode(res => {
+                let authToken = localStorage.getItem('authToken');
+                let list = $('#roleList');
+                list.empty();
+                for (let role of res.data) {
+                    let row = $('<tr>');
+                    row.append(`<td>${role.uid}</td>`);
+                    row.append(`<td>${role.role_name}</td>`);
+                    row.append(`<td><button class="btn btn-sm btn-sm btn-primary" onclick="renameModal.show('${role.uid}','${role.role_name}')">修改名称</button></td>`);
+                    row.append(`<td><button class="btn btn-sm btn-sm btn-warning" onclick="changeRoleModal.show('${role.uid}','${role.role_name}')">修改网络组</button></td>`);
+                    row.append(`<td><button class="btn btn-sm btn-sm btn-danger" onclick="deleteRole('${role.uid}','${role.role_name}')">删除角色</button></td>`);
+                    list.append(row);
+                }
+            })).fail(handleXhrFail);
+        }
+        
+        //获取全部网络组
+        function getAllNetworkList(next) {
+            $.ajax({
+                url: "/api/network/getAll",
+                method: "POST",
+                timeout: 10000,
+                headers: { "authorization": localStorage.getItem('authToken') }
+            }).done(checkResCode(res => {
+                next(res.data);
+            })).fail(handleXhrFail);
+        }
+        
+        //获取某个角色的Networks
+        function getUserNetworkList(uid, next) {
+            $.ajax({
+                url: "/api/role/info",
+                method: "POST",
+                timeout: 10000,
+                contentType: 'application/json',
+                data: JSON.stringify({ uid: uid }),
+                headers: { "authorization": localStorage.getItem('authToken') }
+            }).done(checkResCode(res => {
+                next(res.data.networks);
+            })).fail(handleXhrFail);
+        }
+
+        init();
+    </script>
+</body>
+
+</html>
