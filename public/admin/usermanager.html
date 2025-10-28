@@ -346,7 +346,7 @@
                                     if (parseInt(urole) === arole.uid) checked = true;
                                 ulList.append($(`<li><input type="checkbox" name="role" value="${arole.uid}" ${checked?'checked':''}>${arole.role_name}</li>`))
                             }
-                            $('#changeRoleModal-message').text(`正在修改用户 ${username} 的角色`);
+                            $('#changeRoleModal-message').text(`请为用户 ${username} 勾选所需的角色`);
                             $('#changeRoleModal-btn').off('click').click(() => {
                                 let data = new FormData($('#changeRoleModal-form')[0]);
                                 let roles = data.getAll('role');
