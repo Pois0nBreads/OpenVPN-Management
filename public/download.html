@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="zh-cn">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>VPN管理系统</title>
+</head>
+
+<body>
+    <h3>配置文件下载中...</h3>
+    <a id="downloadLink" href="#" style="display: none">如果没有反应请点击此处下载....</a>
+    <script src="/static/js/jquery.min.js"></script>
+
+    <script>
+
+        //验证权限
+        function authToken() {
+            const savedToken = localStorage.getItem('authToken');
+            if (savedToken) {
+                $.ajax({
+                    url: '/api/user/mylevel',
+                    method: 'POST',
+                    contentType: 'application/json',
+                    headers: { "Authorization": savedToken },
+                    timeout: 10000
+                }).done(function (response) {
+                    next(response.level);
+                })
+                .fail(function (xhr, status, error) {
+                    alert('出现错误：' + error);
+                });
+            } else {
+                next(0);
+            }
+        }
+        function next(code) {
+            if (code < 1) {
+                window.location.href = '/';
+                return;
+            }
+            const savedToken = localStorage.getItem('authToken');
+            const downloadUrl = `/api/vpn/getClientConfig?authToken=${savedToken}&time=${new Date().getTime()}`;
+            window.location.href = downloadUrl;
+            $('#downloadLink').attr('href', downloadUrl);
+            $('#downloadLink').show();
+        }
+
+        authToken();
+    </script>
+</body>
+
+</html>
