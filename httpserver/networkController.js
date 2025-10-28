@@ -52,7 +52,8 @@ class NetworkController {
                 if (!Array.isArray(networks))
                     throw new Error('networks 必须是数组');
                 for (let cidr of networks) {
-                    this.networkDAO.isValidCIDRnet(cidr);
+                    if (!this.networkDAO.isValidCIDRnet(cidr))
+                        throw new Error(`网络 ${cidr} 不是合法的CIDR!`);
                 }
                 let code = await this.networkDAO.addNetwork(network_name, networks);
                 res.send({
@@ -139,7 +140,8 @@ class NetworkController {
                 if (!Array.isArray(networks))
                     throw new Error('networks 必须是数组');
                 for (let cidr of networks) {
-                    this.networkDAO.isValidCIDRnet(cidr);
+                    if (!this.networkDAO.isValidCIDRnet(cidr))
+                        throw new Error(`网络 ${cidr} 不是合法的CIDR!`);
                 }
                 let code = await this.networkDAO.changeNetworkByUID(uid, networks);
                 res.send({
