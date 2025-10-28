@@ -97,7 +97,7 @@
     <script>
         let confirmModal = {
             show: (msg, next) => {
-                $('#confirmModal-button').click(() => next());
+                $('#confirmModal-button').off('click').click(() => next());
                 $('#confirmModal-message').text(msg);
                 $('#confirmModal').modal('show');
             },
