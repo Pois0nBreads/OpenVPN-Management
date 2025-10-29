@@ -50,7 +50,7 @@ class SystemController {
                     kernel: osInfo.kernel,
                     localtime: new Date().toString(),
                     uptime: time2day(parseInt(os.uptime())),
-                    loadavg: os.loadavg().join(', ')
+                    loadavg: os.loadavg()
                 }
                 res.send({
                     code: 0,

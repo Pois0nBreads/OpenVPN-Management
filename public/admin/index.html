@@ -131,7 +131,7 @@
                         <td id="uptime">Loading...</td>
                     </tr>
                     <tr>
-                        <td>平均负载</td>
+                        <td>系统平均负载</td>
                         <td id="overload">Loading...</td>
                     </tr>
                 </table>
@@ -261,6 +261,9 @@
                 ,
             }).done(checkResCode(res => {
                 let data = res.data;
+                let load0 = parseInt(data.loadavg[0] * 100);
+                let load1 = parseInt(data.loadavg[1] * 100);
+                let load2 = parseInt(data.loadavg[2] * 100);
                 $('#hostname').text(data.hostname);
                 $('#model').text(data.model);
                 $('#cpuname').text(data.cpuname);
@@ -269,7 +272,7 @@
                 $('#kernel').text(data.kernel);
                 $('#localtime').text(data.localtime);
                 $('#uptime').text(data.uptime);
-                $('#overload').text(data.loadavg);
+                $('#overload').text(`${load0}%(1分钟内) - ${load1}%(5分钟内) - ${load2}%(15分钟内)`);
             })).fail(handleXhrFail);
         }
 
@@ -278,6 +281,7 @@
             getCpuInfo();
             getDiskInfo();
             getIfaceInfo();
+            getLoadavg();
         }
 
         function getMemInfo() {
@@ -406,6 +410,22 @@
             })).fail(handleXhrFail);
         }
         
+        function getLoadavg() {
+            $.ajax({
+                url: "/api/system/systemInfo",
+                method: "POST",
+                timeout: 10000,
+                headers: { "authorization": localStorage.getItem('authToken') }
+                ,
+            }).done(checkResCode(res => {
+                let data = res.data;
+                let load0 = parseInt(data.loadavg[0] * 100);
+                let load1 = parseInt(data.loadavg[1] * 100);
+                let load2 = parseInt(data.loadavg[2] * 100);
+                $('#overload').text(`${load0}%(1分钟内) - ${load1}%(5分钟内) - ${load2}%(15分钟内)`);
+            })).fail(handleXhrFail);
+        }
+
         init();
         looper();
         setInterval(looper, 5000);
