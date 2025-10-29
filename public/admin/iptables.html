@@ -128,7 +128,7 @@
     <script>
 
         function init() {
-            getRouteTable();
+            getFirewallTable();
         }
 
         function addTable(tableName, rules) {
@@ -172,7 +172,7 @@
             $('#main-panel').append(body);
         }
 
-        function getRouteTable() {
+        function getFirewallTable() {
             $.ajax({
                 url: "/api/system/firewall",
                 method: "POST",
