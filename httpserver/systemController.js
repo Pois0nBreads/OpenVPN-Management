@@ -4,6 +4,7 @@
 const express = require('express');
 const os = require('os');
 const SystemInformation = require('systeminformation');
+const { execSync } = require('child_process');
 
 //时间戳变 xxd xxh xxm xxs
 function time2day(time){
@@ -166,6 +167,40 @@ class SystemController {
                 res.send({
                     code: -1,
                     msg: '查询防火墙数据失败' + e
+                });
+            }
+        });
+        /**
+         * 查询路由表接口
+         */
+        router.post('/route', async (req, res) => {
+            try {
+                const output = execSync(`route -vne`); 
+                let result = output.toString().split('\n').filter(Boolean);
+
+                let routes = [];
+                for (let i = 2;i < result.length;i++) {
+                    let routeRaw = result[i].split(' ').filter(Boolean);
+                    let route = {};
+                    route.dest      = routeRaw[0];
+                    route.next      = routeRaw[1];
+                    route.mask      = routeRaw[2];
+                    route.flag      = routeRaw[3];
+                    route.mss       = routeRaw[4];
+                    route.window    = routeRaw[5];
+                    route.irtt      = routeRaw[6];
+                    route.iface     = routeRaw[7];
+                    routes.push(route);
+                }
+                res.send({
+                    code: 0,
+                    msg: '查询路由表数据成功',
+                    data: routes
+                });
+            } catch (e) {
+                res.send({
+                    code: -1,
+                    msg: '查询路由表数据失败' + e
                 });
             }
         });
