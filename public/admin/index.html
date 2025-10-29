@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="zh-cn">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -12,13 +13,16 @@
             padding-left: 15px;
             padding-right: 15px;
         }
+
         body {
             padding-top: 50px;
         }
+
         .progress {
             margin-bottom: 5px;
             height: 10px;
         }
+
         .progress-info {
             margin-bottom: 10px;
         }
@@ -30,15 +34,16 @@
     <nav class="navbar navbar-inverse navbar-fixed-top">
         <div class="container">
             <div class="navbar-header">
-                <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#navbar-collapse">
+                <button type="button" class="navbar-toggle collapsed" data-toggle="collapse"
+                    data-target="#navbar-collapse">
                     <span class="sr-only">切换导航</span>
                     <span class="icon-bar"></span>
                     <span class="icon-bar"></span>
                     <span class="icon-bar"></span>
                 </button>
-				<a class="navbar-brand" href="/admin">VPN管理系统</a>
+                <a class="navbar-brand" href="/admin">VPN管理系统</a>
             </div>
-            
+
             <div class="collapse navbar-collapse" id="navbar-collapse">
                 <ul class="nav navbar-nav">
                     <li class="dropdown">
@@ -58,17 +63,19 @@
                             <li><a href="vpnconfig.html">VPN配置</a></li>
                         </ul>
                     </li>
-					<li><a href="usermanager.html">用户管理</a></li>
-					<li><a href="rolemanager.html">角色管理</a></li>
-					<li><a href="networkmanager.html">网络组管理</a></li>
+                    <li><a href="usermanager.html">用户管理</a></li>
+                    <li><a href="rolemanager.html">角色管理</a></li>
+                    <li><a href="networkmanager.html">网络组管理</a></li>
                 </ul>
-                
+
                 <div class="navbar-right">
                     <ul class="nav navbar-nav">
-                        <li><a href="?" ><span class="glyphicon glyphicon-refresh"></span> 刷新</a></li>
-                        <li><a href="/download.html" target="_blank"><span class=".glyphicon .glyphicon-download"></span> 下载客户端配置</a></li>
+                        <li><a href="?"><span class="glyphicon glyphicon-refresh"></span> 刷新</a></li>
+                        <li><a href="/download.html" target="_blank"><span
+                                    class=".glyphicon .glyphicon-download"></span> 下载客户端配置</a></li>
                         <li class="dropdown">
-                            <a href="#" class="dropdown-toggle" data-toggle="dropdown"><span id="myname" >我</span><span class="caret"></span></a>
+                            <a href="#" class="dropdown-toggle" data-toggle="dropdown"><span id="myname">我</span><span
+                                    class="caret"></span></a>
                             <ul class="dropdown-menu">
                                 <li><a href="userconfig.html">用户配置</a></li>
                                 <li><a href="javascript:void(0);" onclick="logout()">退出</a></li>
@@ -131,6 +138,18 @@
             </div>
         </div>
 
+        <!-- 处理器负载信息 -->
+        <div class="panel panel-default">
+            <div class="panel-heading">
+                <h3 class="panel-title">处理器负载</h3>
+            </div>
+            <div class="panel-body">
+                <table class="table table-bordered table-striped" >
+                    <tbody id="cpuList"></tbody>
+                </table>
+            </div>
+        </div>
+
         <!-- 内存信息 -->
         <div class="panel panel-default">
             <div class="panel-heading">
@@ -181,29 +200,11 @@
         <!-- 存储空间 -->
         <div class="panel panel-default">
             <div class="panel-heading">
-                <h3 class="panel-title">存储空间使用</h3>
+                <h3 class="panel-title">存储空间使用情况</h3>
             </div>
             <div class="panel-body">
                 <table class="table table-bordered table-striped">
-
-                    <tr>
-                        <td width="33%">磁盘空间</td>
-                        <td>
-                            <div class="progress-info">64.85 MiB / 102.33 MiB (63%)</div>
-                            <div class="progress">
-                                <div class="progress-bar" style="width:63%"></div>
-                            </div>
-                        </td>
-                    </tr>
-                    <tr>
-                        <td>临时空间</td>
-                        <td>
-                            <div class="progress-info">8.03 MiB / 493.45 MiB (1%)</div>
-                            <div class="progress">
-                                <div class="progress-bar" style="width:1%"></div>
-                            </div>
-                        </td>
-                    </tr>
+                    <tbody id="diskList"></tbody>
                 </table>
             </div>
         </div>
@@ -211,43 +212,26 @@
         <!-- 网络信息 -->
         <div class="panel panel-default">
             <div class="panel-heading">
-                <h3 class="panel-title">网络</h3>
+                <h3 class="panel-title">网络接口</h3>
             </div>
-            <div class="panel-body">
-                <div class="panel panel-primary">
-                    <div class="panel-heading">
-                        <strong>IPv4 上游</strong>
-                    </div>
-                    <div class="panel-body">
-                        <p><strong>协议：</strong>静态地址</p>
-                        <p><strong>地址：</strong>192.168.252.253/24</p>
-                        <p><strong>网关：</strong>192.168.252.254</p>
-                        <p><strong>DNS 1：</strong>114.114.114.114</p>
-                        <p><strong>DNS 2：</strong>223.5.5.5</p>
-                        <p><strong>已连接：</strong>295d 14h 23m 13s</p>
-                        
-                        <div class="well">
-                            <p><strong>设备：</strong>桥接: "br-lan"</p>
-                            <p><strong>MAC 地址：</strong>00:0C:29:F2:3A:9B</p>
-                        </div>
-                    </div>
-                </div>
+            <div class="panel-body" id="ifaceList">
+            </div>
                 
-                <table class="table table-bordered table-striped">
-                    <tr>
-                        <td width="33%">活动连接</td>
-                        <td>
-                            <div class="progress-info">46 / 63488 (0%)</div>
-                            <div class="progress">
-                                <div class="progress-bar" style="width:0%"></div>
-                            </div>
-                        </td>
-                    </tr>
-                </table>
-            </div>
+            <!-- 
+            <table class="table table-bordered table-striped">
+                <tr>
+                    <td width="33%">活动连接</td>
+                    <td>
+                        <div class="progress-info">46 / 63488 (0%)</div>
+                        <div class="progress">
+                            <div class="progress-bar" style="width:0%"></div>
+                        </div>
+                    </td>
+                </tr>
+            </table> -->
         </div>
 
-        
+
     </div>
 
     <!-- 页脚 -->
@@ -267,55 +251,165 @@
     <script src="/static/js/modal.js"></script>
     <script src="/static/js/public.js"></script>
 
-	<script>
-		function init() {
-			$.ajax({
-				url: "/api/system/systemInfo",
-				method: "POST",
-				timeout: 10000,
-				headers: { "authorization": localStorage.getItem('authToken') }
-			,}).done(checkResCode(res => {
-				let data = res.data;
-				$('#hostname').text(data.hostname);
-				$('#model').text(data.model);
-				$('#cpuname').text(data.cpuname);
-				$('#arch').text(data.arch);
-				$('#target').text(data.target);
-				$('#kernel').text(data.kernel);
-				$('#localtime').text(data.localtime);
-				$('#uptime').text(data.uptime);
-				$('#overload').text(data.loadavg);
-			})).fail(handleXhrFail);
-		}
-		
-		function getMemInfo() {
-			$.ajax({
-				url: "/api/system/memInfo",
-				method: "POST",
-				timeout: 10000,
-				headers: { "authorization": localStorage.getItem('authToken') }
-			,}).done(checkResCode(res => {
-				let data = res.data;
-				let available = parseInt(data.available / data.total * 100);
-				let used = parseInt(data.used / data.total * 100);
-				let buffers = parseInt(data.buffers / data.total * 100);
-				let cached = parseInt(data.cached / data.total * 100);
+    <script>
+        function init() {
+            $.ajax({
+                url: "/api/system/systemInfo",
+                method: "POST",
+                timeout: 10000,
+                headers: { "authorization": localStorage.getItem('authToken') }
+                ,
+            }).done(checkResCode(res => {
+                let data = res.data;
+                $('#hostname').text(data.hostname);
+                $('#model').text(data.model);
+                $('#cpuname').text(data.cpuname);
+                $('#arch').text(data.arch);
+                $('#target').text(data.target);
+                $('#kernel').text(data.kernel);
+                $('#localtime').text(data.localtime);
+                $('#uptime').text(data.uptime);
+                $('#overload').text(data.loadavg);
+            })).fail(handleXhrFail);
+        }
 
-				$('#available').text(`${data.available} MiB / ${data.total} MiB (${available}%)`);
-				$('#used').text(`${data.used} MiB / ${data.total} MiB (${used}%)`);
-				$('#buffers').text(`${data.buffers} MiB / ${data.total} MiB (${buffers}%)`);
-				$('#cached').text(`${data.cached} MiB / ${data.total} MiB (${cached}%)`);
+        function looper() {
+            getMemInfo();
+            getCpuInfo();
+            getDiskInfo();
+            getIfaceInfo();
+        }
 
-				$('#availableProc').css('width',`${available}%`);
-				$('#usedProc').css('width',`${used}%`);
-				$('#buffersProc').css('width',`${buffers}%`);
-				$('#cachedProc').css('width',`${cached}%`);
-			})).fail(handleXhrFail);
-			setTimeout(getMemInfo, 5000);
-		}
+        function getMemInfo() {
+            $.ajax({
+                url: "/api/system/memInfo",
+                method: "POST",
+                timeout: 5000,
+                headers: { "authorization": localStorage.getItem('authToken') }
+                ,
+            }).done(checkResCode(res => {
+                let data = res.data;
+                let available = parseInt(data.available / data.total * 100);
+                let used = parseInt(data.used / data.total * 100);
+                let buffers = parseInt(data.buffers / data.total * 100);
+                let cached = parseInt(data.cached / data.total * 100);
 
-		init();
-		getMemInfo();
-	</script>
+                $('#available').text(`${data.available} MiB / ${data.total} MiB (${available}%)`);
+                $('#used').text(`${data.used} MiB / ${data.total} MiB (${used}%)`);
+                $('#buffers').text(`${data.buffers} MiB / ${data.total} MiB (${buffers}%)`);
+                $('#cached').text(`${data.cached} MiB / ${data.total} MiB (${cached}%)`);
+
+                $('#availableProc').css('width', `${available}%`);
+                $('#usedProc').css('width', `${used}%`);
+                $('#buffersProc').css('width', `${buffers}%`);
+                $('#cachedProc').css('width', `${cached}%`);
+            })).fail(handleXhrFail);
+        }
+
+        function getCpuInfo() {
+            $.ajax({
+                url: "/api/system/cpuInfo",
+                method: "POST",
+                timeout: 5000,
+                headers: { "authorization": localStorage.getItem('authToken') }
+                ,
+            }).done(checkResCode(res => {
+                let cpus = res.data.cpus;
+                let cpuList = $('#cpuList');
+                cpuList.empty();
+                for (let i=0;i<cpus.length;i++) {
+                    let load = cpus[i].load.toFixed(2);
+                    let tr = $(`
+                        <tr>
+                            <td width="33%">CPU-${i}</td>
+                            <td>
+                                <div class="progress-info">当前利用率 (${load}%)</div>
+                                <div class="progress">
+                                    <div class="progress-bar" style="width:${parseInt(load)}%"></div>
+                                </div>
+                            </td>
+                        </tr>`);
+                    cpuList.append(tr);
+                }
+                
+            })).fail(handleXhrFail);
+        }
+
+        function getDiskInfo() {
+            $.ajax({
+                url: "/api/system/diskInfo",
+                method: "POST",
+                timeout: 5000,
+                headers: { "authorization": localStorage.getItem('authToken') }
+                ,
+            }).done(checkResCode(res => {
+                let disks = res.data;
+                let diskList = $('#diskList');
+                diskList.empty();
+                for (let disk of disks) {
+                    let tr = $(`
+                        <tr>
+                            <td width="33%">
+                                <div>挂载点: ${disk.mount}</div>
+                                <div>设备: ${disk.fs}</div>
+                                <div>文件系统: ${disk.type} 挂载状态: ${disk.rw?'读写':'只读'}</div>
+                            </td>
+                            <td>
+                                <div class="progress-info">${disk.used} MiB / ${disk.size} MiB (${disk.use}%)</div>
+                                <div class="progress">
+                                    <div class="progress-bar" style="width:${parseInt(disk.use)}%"></div>
+                                </div>
+                            </td>
+                        </tr>`);
+                    diskList.append(tr);
+                }
+                
+            })).fail(handleXhrFail);
+        }
+
+        function getIfaceInfo() {
+            $.ajax({
+                url: "/api/system/netInfo",
+                method: "POST",
+                timeout: 5000,
+                headers: { "authorization": localStorage.getItem('authToken') }
+                ,
+            }).done(checkResCode(res => {
+                let ifaces = res.data;
+                let ifaceList = $('#ifaceList');
+                ifaceList.empty();
+                for (let iface of ifaces) {
+                    if (iface.internal)
+                        continue;
+                    let tr = $(`
+                        <div class="panel ${iface.default?'panel-success':'panel-info'}">
+                            <div class="panel-heading">
+                                <strong>接口: ${iface.ifaceName} ${iface.default?'(默认接口)':''}</strong>
+                            </div>
+                            <div class="panel-body">
+                                <p><strong>协议：</strong>${iface.dhcp?'DHCP客户端':'静态地址'}</p>
+                                <p><strong>地址：</strong>${iface.ip4}/${iface.ip4subnet}</p>
+                                <p><strong>设备类型：</strong>${iface.type}</p>
+                                <p><strong>MTU大小：</strong>${iface.mtu}</p>
+                                <p><strong>连接速度：</strong>${iface.speed}Mbps (${iface.duplex?'全双工':'半双工'})</p>
+                                <p><strong>虚拟网卡：</strong>${iface.virtual?'是':'否'}</p>
+                                <p><strong>MAC 地址：</strong>${iface.mac}</p>
+                            </div>
+                        </div>`);
+                    if (iface.default == true)
+                        ifaceList.prepend(tr)
+                    else
+                        ifaceList.append(tr);
+                }
+
+                
+            })).fail(handleXhrFail);
+        }
+        
+        init();
+        looper();
+        setInterval(looper, 5000);
+    </script>
 </body>
+
 </html>
