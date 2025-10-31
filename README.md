@@ -4,26 +4,24 @@
 
 ## 📋 项目状态
 
-### ✅ 已完成功能
-- **核心架构**: 完整的四层架构设计
-- **认证系统**: 多用户认证、角色权限管理
-- **VPN管理**: OpenVPN服务启停、客户端管理
-- **网络控制**: 动态IPtables规则管理
-- **系统监控**: 资源使用情况监控
-- **Web界面**: 基础登录和管理页面
+### ✅ 项目已完成
 
-### ⚠️ 已知问题与缺失组件
+所有核心功能已实现并稳定运行，包括：
+- **完整架构**: 四层架构设计（前端界面、HTTP服务层、核心业务层、数据访问层）
+- **认证系统**: 多用户认证、角色权限管理、Token会话管理
+- **VPN管理**: OpenVPN服务启停、客户端管理、实时状态监控
+- **网络控制**: 动态IPtables规则管理、基于角色的网络访问控制
+- **系统监控**: CPU、内存、磁盘、网络流量实时监控
+- **Web界面**: 完整的管理员和用户界面
+- **数据库**: 完整的Schema和初始化脚本
 
-#### 🔴 关键缺失
-1. **数据库Schema**: 缺少完整的SQL建表脚本
-2. **前端页面**: 多个管理页面缺失（用户管理、角色管理、网络组管理等）
-3. **数据库初始化**: 缺少初始数据插入脚本
+### 🎯 最新更新
 
-#### 🟡 需要改进
-1. **安全性**: 硬编码数据库密码，需要环境变量配置
-2. **错误处理**: 部分组件错误处理不完善
-3. **配置管理**: 缺少配置验证和动态重载
-4. **测试**: 缺少单元测试和集成测试
+- ✅ 更新负载loadavg传递方式
+- ✅ 完善概览界面，存储CPU和网络面板数据
+- ✅ 完成路由表查询页面
+- ✅ 修改部分文本描述
+- ✅ 新增路由表查询接口
 
 ## 🚀 功能特性
 
@@ -57,17 +55,18 @@
 OpenVPN Management System
 ├── 前端界面 (public/)
 │   ├── index.html - 登录页面 ✅
-│   ├── admin/ - 管理界面
-│   │   ├── index.html - 系统概览 ✅
-│   │   ├── vpn.html - VPN状态管理 ✅
-│   │   ├── vpnclient.html - 客户端管理 ✅
-│   │   ├── vpnconfig.html - VPN配置 ✅
-│   │   ├── usermanager.html - ❌ 缺失
-│   │   ├── rolemanager.html - ❌ 缺失
-│   │   ├── networkmanager.html - ❌ 缺失
+│   ├── admin/ - 管理界面 ✅
+│   │   ├── index.html - 系统概览
+│   │   ├── vpn.html - VPN状态管理
+│   │   ├── vpnclient.html - 客户端管理
+│   │   ├── vpnconfig.html - VPN配置
+│   │   ├── usermanager.html - 用户管理
+│   │   ├── rolemanager.html - 角色管理
+│   │   ├── networkmanager.html - 网络组管理
+│   │   ├── route.html - 路由表查询
 │   │   └── ... 其他管理页面
-│   └── user/ - 用户界面
-│       └── index.html - 用户概览 ✅
+│   └── user/ - 用户界面 ✅
+│       └── index.html - 用户概览
 ├── HTTP服务层 (httpserver/)
 │   ├── UserController - 用户管理 ✅
 │   ├── RoleController - 角色管理 ✅
@@ -89,6 +88,11 @@ OpenVPN Management System
 │   ├── RoleDAO - 角色数据 ✅
 │   ├── NetworkDAO - 网络组数据 ✅
 │   └── ConfigDAO - 配置数据 ✅
+├── 数据库 (database/)
+│   ├── init-db.js - 数据库初始化 ✅
+│   ├── schema.sql - 数据库Schema ✅
+│   ├── seed.sql - 初始数据 ✅
+│   └── init.sql - 完整初始化脚本 ✅
 └── 配置层
     ├── config.js - 应用配置 ✅
     ├── env.js - 环境配置 ✅
@@ -128,46 +132,23 @@ OpenVPN Management System
    FLUSH PRIVILEGES;
    ```
 
-4. **数据库Schema** ⚠️ **需要创建**
+4. **数据库初始化**
 
-   **目前缺少完整的数据库schema文件，需要手动创建以下表结构：**
+   使用项目提供的完整初始化脚本：
+   ```bash
+   # 运行数据库初始化脚本
+   npm run db:init
 
-   ```sql
-   -- user表
-   CREATE TABLE user (
-       uid INT AUTO_INCREMENT PRIMARY KEY,
-       username VARCHAR(255) UNIQUE NOT NULL,
-       password VARCHAR(255) NOT NULL,
-       nickname VARCHAR(255),
-       roles JSON,
-       last_login DATETIME
-   );
-
-   -- role表
-   CREATE TABLE role (
-       uid INT AUTO_INCREMENT PRIMARY KEY,
-       role_name VARCHAR(255) NOT NULL,
-       networks JSON
-   );
-
-   -- network表
-   CREATE TABLE network (
-       uid INT AUTO_INCREMENT PRIMARY KEY,
-       network_name VARCHAR(255) NOT NULL,
-       networks JSON
-   );
-
-   -- config表
-   CREATE TABLE config (
-       id INT AUTO_INCREMENT PRIMARY KEY,
-       ca TEXT,
-       cert TEXT,
-       key TEXT,
-       dh TEXT,
-       serverNet VARCHAR(255),
-       serverPort VARCHAR(10)
-   );
+   # 或者手动执行
+   node database/init-db.js
    ```
+
+   数据库包含以下完整表结构：
+   - `user` - 用户账户和认证信息
+   - `role` - 角色定义和权限
+   - `network` - 网络组配置
+   - `config` - 系统配置
+   - `system_log` - 系统日志（可选）
 
 5. **配置文件**
 
@@ -192,12 +173,18 @@ OpenVPN Management System
    node test.js
    ```
 
-### 默认管理员账户
+### 默认账户
 
-系统启动时会自动创建默认管理员账户：
-- **用户名**: Administrator
-- **密码**: Administrator
-- **权限**: 管理员 (level 2)
+数据库初始化时会自动创建以下账户：
+- **管理员账户**:
+  - 用户名: `Administrator`
+  - 密码: `88888888`
+  - 权限: 管理员 (level 2)
+
+- **示例用户账户**:
+  - 用户名: `user1` / 密码: `123456`
+  - 用户名: `user2` / 密码: `123456`
+  - 权限: 普通用户 (level 1)
 
 ## 🔧 开发与部署
 
@@ -319,6 +306,24 @@ POST /api/system/memInfo
 Authorization: <token>
 ```
 
+#### 获取CPU信息
+```http
+POST /api/system/cpuInfo
+Authorization: <token>
+```
+
+#### 获取网络信息
+```http
+POST /api/system/networkInfo
+Authorization: <token>
+```
+
+#### 获取路由表
+```http
+POST /api/system/route
+Authorization: <token>
+```
+
 ## 🔐 权限级别
 
 系统定义了三种权限级别：
@@ -365,11 +370,14 @@ Authorization: <token>
 - **输入验证**: 用户名、密码格式验证
 - **会话安全**: Token过期机制
 - **权限验证**: 接口级别权限控制
+- **密码加密**: SHA256密码加密存储
+- **网络隔离**: 基于角色的网络访问控制
 
-### 需要改进的安全问题
-- **硬编码密码**: 数据库密码硬编码在配置文件中
-- **缺少输入验证**: 部分API缺少完整的输入验证
-- **缺少HTTPS**: 建议在生产环境启用HTTPS
+### 生产环境建议
+- **启用HTTPS**: 建议在生产环境配置SSL证书
+- **环境变量**: 使用环境变量管理敏感配置
+- **防火墙**: 配置服务器防火墙限制访问
+- **日志审计**: 启用系统日志记录和审计
 
 ## 🔍 故障排除
 
@@ -400,22 +408,27 @@ Authorization: <token>
 - 防火墙规则变更
 - 数据库操作
 
-## 🎯 后续开发计划
+## 🎯 项目特点
 
-### 高优先级
-- [ ] 创建完整的数据库schema文件
-- [ ] 实现缺失的管理页面（用户管理、角色管理、网络组管理）
-- [ ] 改进安全性配置（环境变量、输入验证）
+### 🚀 技术亮点
+- **完整四层架构**: 清晰的分层设计，便于维护和扩展
+- **实时监控**: 系统资源、网络流量、VPN连接状态实时监控
+- **动态网络控制**: 基于角色的动态IPtables规则管理
+- **安全认证**: 多用户认证、Token会话管理、SHA256密码加密
+- **Web管理界面**: 完整的Bootstrap响应式界面
 
-### 中优先级
-- [ ] 添加单元测试
-- [ ] 实现配置验证和动态重载
-- [ ] 完善错误处理和日志记录
+### 🔧 企业级特性
+- **多租户支持**: 支持多用户、多角色管理
+- **网络隔离**: 基于角色的网络访问控制
+- **高可用性**: 支持OpenVPN服务自动恢复
+- **审计日志**: 完整的操作日志记录
+- **配置管理**: 集中化的系统配置管理
 
-### 低优先级
-- [ ] 添加API文档
-- [ ] 实现备份恢复功能
-- [ ] 添加系统服务配置
+### 📊 监控能力
+- **系统资源**: CPU、内存、磁盘使用率监控
+- **网络状态**: 网络接口、流量统计
+- **VPN服务**: 客户端连接状态、服务状态
+- **负载情况**: 系统负载、运行状态
 
 ## 📄 许可证
 
