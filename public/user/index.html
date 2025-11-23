@@ -64,19 +64,75 @@
 
     <!-- 主内容区 - 浅色背景 -->
     <div class="container">
-        <h2>状态</h2>
+        <h2>当前用户状态</h2>
 
-        <!-- 系统信息 -->
         <div class="panel panel-default">
             <div class="panel-heading">
-                <h3 class="panel-title">系统</h3>
+                <h3 class="panel-title">状态概览</h3>
             </div>
-
+            <div class="panel-body">
+                <table class="table table-bordered table-striped">
+                    <tr>
+                        <td width="33%">用户名</td>
+                        <td id="name">Loading...</td>
+                    </tr>
+                    <tr>
+                        <td>昵称</td>
+                        <td id="nickname">Loading...</td>
+                    </tr>
+                    <tr>
+                        <td>当前时间</td>
+                        <td id="time">Loading...</td>
+                    </tr>
+                    <tr>
+                        <td>最后登陆时间</td>
+                        <td id="lastlogintime">Loading...</td>
+                    </tr>
+                    <tr>
+                        <td>当前在线客户端数量</td>
+                        <td id="onlineclient">Loading...</td>
+                    </tr>
+                    <tr>
+                        <td>用户上行流量总和</td>
+                        <td id="uplinkall">Loading...</td>
+                    </tr>
+                    <tr>
+                        <td>用户上行流量总和</td>
+                        <td id="downlinkall">Loading...</td>
+                    </tr>
+                    <tr>
+                        <td>客户端平均上行流量</td>
+                        <td id="uplinkagv">Loading...</td>
+                    </tr>
+                    <tr>
+                        <td>客户端平均下行流量</td>
+                        <td id="downlinkagv">Loading...</td>
+                    </tr>
+                </table>
+            </div>
         </div>
 
-
-
-
+        <div class="panel panel-default">
+            <div class="panel-heading">
+                <h3 class="panel-title">权限概览</h3>
+            </div>
+            <div class="panel-body">
+                <table class="table table-bordered table-striped">
+                    <tr>
+                        <td width="20%">所属角色</td>
+                        <td id="role">Loading...</td>
+                    </tr>
+                    <tr>
+                        <td>所属网络组</td>
+                        <td id="network">Loading...</td>
+                    </tr>
+                    <tr>
+                        <td>可用网段</td>
+                        <td id="cidr">Loading...</td>
+                    </tr>
+                </table>
+            </div>
+        </div>
         
     </div>
 
@@ -100,23 +156,79 @@
 	<script>
 		function init() {
 			$.ajax({
-				url: "/api/system/systemInfo",
+                url: "/api/user/myinfo",
 				method: "POST",
 				timeout: 10000,
 				headers: { "authorization": localStorage.getItem('authToken') }
 			,}).done(checkResCode(res => {
 				let data = res.data;
-				$('#hostname').text(data.hostname);
-				$('#model').text(data.model);
-				$('#cpuname').text(data.cpuname);
-				$('#arch').text(data.arch);
-				$('#target').text(data.target);
-				$('#kernel').text(data.kernel);
-				$('#localtime').text(data.localtime);
-				$('#uptime').text(data.uptime);
-				$('#overload').text(data.loadavg);
+				$('#name').text(data.username);
+				$('#nickname').text(data.nickname);
+				$('#time').text(new Date().toLocaleString());
+				$('#lastlogintime').text(new Date(data.last_login).toLocaleString());
+
+                let role = '';
+                let network = '';
+                let cidr = '';
+                
+                for (let r of data.roles) {
+                    role += `${r.name}, `;
+                    for (let n of r.networkList) {
+                        network += `${n.name}, `;
+                        for (let c of n.networks) {
+                            cidr += `${c}<br>`;
+                        }
+                    }
+                }
+
+				$('#role').text(role);
+				$('#network').text(network);
+				$('#cidr').html(cidr);
 			})).fail(handleXhrFail);
 		}
+
+        function getClientStatus() {
+            $.ajax({
+                url: "/api/vpn/getMyClients",
+				method: "POST",
+				timeout: 10000,
+				headers: { "authorization": localStorage.getItem('authToken') }
+			,}).done(checkResCode(res => {
+				let data = res.data;
+				$('#onlineclient').text(data.length);
+                let upall = 0;
+                let downall = 0;
+                for (let client of data) {
+                    upall += parseInt(client.txBytes);
+                    downall += parseInt(client.rxBytes);
+                }
+                let upwnagv = parseInt(upall / data.length);
+                let downagv = parseInt(downall / data.length);
+				$('#uplinkall').text(upall + 'KB');
+				$('#downlinkall').text(downall + 'KB');
+				$('#uplinkagv').text(upwnagv + 'KB');
+				$('#downlinkagv').text(downagv + 'KB');
+			})).fail(handleXhrFail);
+        }
+
+
+        init();
+        getClientStatus();
+        $.ajax({
+            url: "/api/vpn/getMyClients",
+            method: "POST",
+            timeout: 10000,
+            headers: { "authorization": localStorage.getItem('authToken') }
+        ,}).done(checkResCode(res => {
+        })).fail(handleXhrFail);
+
+        $.ajax({
+            url: "/api/user/myinfo",
+            method: "POST",
+            timeout: 10000,
+            headers: { "authorization": localStorage.getItem('authToken') }
+        ,}).done(checkResCode(res => {
+        })).fail(handleXhrFail);
 
 	</script>
 </body>
